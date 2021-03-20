@@ -1,5 +1,5 @@
 import pandas as pd
-import nltk
+from nltk.corpus import stopwords
 import re
 
 def preprocess(tweets):
@@ -20,13 +20,26 @@ def remove_url(tweet):
     removed_http = re.sub(r'https?://[a-zA-Z0-9_.]+', ' ', tweet)
     return re.sub(r'www\.[a-zA-Z0-9_.]+', ' ', removed_http)
 
+def lowercase(tweet):
+    # Not sure if this function is needed but it lowercase the string
+    return tweet.lower()
+
+def remove_stopwords(tweet):
+    ## List of stopwords
+    STOPWORDS = stopwords.words('english')
+    words = tweet.split()
+    for word in words:
+        if word in STOPWORDS:
+            pattern = '(?:^|\W)' + word + '(?:$|\W)'
+            tweet = re.sub(pattern, ' ', tweet)
+    return tweet
 
 def main():
     # NOTE: Need to split train and test set
     train = pd.read_csv('text_emotion.csv')
     # "tweet_id","sentiment","author","content"
-    test_string = "@tiffanylue 123 word he's what! ice-cream @tai_ping www.google.co https://aa http http://was.al.com wowwwww."
-    print(alphanumerify(remove_mention(remove_url(test_string))))
+    test_string = "@tiffanylue 123 word he's what! ice-cream @tai_ping www.google.co https://aa http http://was.al.com wowwwww. I an am the is isnt it marvelous"
+    print(remove_stopwords(alphanumerify(remove_mention(remove_url(test_string)))))
 
     print("main")
 
