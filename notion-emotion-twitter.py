@@ -15,12 +15,18 @@ def alphanumerify(tweet):
     # Only alphabets and number will remains, the rest will be replaced with a space
     return re.sub(r'[^a-zA-Z0-9]+', ' ', tweet)
 
+def remove_url(tweet):
+    # Removing URLs
+    removed_http = re.sub(r'https?://[a-zA-Z0-9_.]+', ' ', tweet)
+    return re.sub(r'www\.[a-zA-Z0-9_.]+', ' ', removed_http)
+
+
 def main():
     # NOTE: Need to split train and test set
     train = pd.read_csv('text_emotion.csv')
     # "tweet_id","sentiment","author","content"
-    test_string = "@tiffanylue 123 word he's what! ice-cream @tai_ping"
-    print(alphanumerify(remove_mention(test_string)))
+    test_string = "@tiffanylue 123 word he's what! ice-cream @tai_ping www.google.co https://aa http http://was.al.com wowwwww."
+    print(alphanumerify(remove_mention(remove_url(test_string))))
 
     print("main")
 
