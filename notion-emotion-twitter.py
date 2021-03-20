@@ -25,7 +25,8 @@ def lowercase(tweet):
     return tweet.lower()
 
 def remove_stopwords(tweet):
-    ## List of stopwords
+
+    # List of stopwords
     STOPWORDS = stopwords.words('english')
     words = tweet.split()
     for word in words:
@@ -34,13 +35,20 @@ def remove_stopwords(tweet):
             tweet = re.sub(pattern, ' ', tweet)
     return tweet
 
+def is_min_threshold(tweet, threshold):
+    # Returns a boolean that reflect if the tweet meet the minimum threshold
+    # Default threshold is 4
+    threshold = 4
+    words = tweet.split()
+    return (len(words) > threshold)
+
 def main():
     # NOTE: Need to split train and test set
     train = pd.read_csv('text_emotion.csv')
     # "tweet_id","sentiment","author","content"
-    test_string = "@tiffanylue 123 word he's what! ice-cream @tai_ping www.google.co https://aa http http://was.al.com wowwwww. I an am the is isnt it marvelous"
+    test_string = "@tiffanylue 123 word a he's what! ice-cream @tai_ping www.google.co https://aa http http://was.al.com wowwwww. I an am the is isnt it marvelous"
     print(remove_stopwords(alphanumerify(remove_mention(remove_url(test_string)))))
-
+    print(is_min_threshold(test_string, 1000))
     print("main")
 
 if __name__ == "__main__":
