@@ -8,7 +8,7 @@ from langdetect import detect
 ## NOTE: Very short-text can give unexpected results, emoticons should be removed before calling this method
 def isEnglish(text):
     language = detect(text)
-    if (language == en):
+    if (language == "en"):
         return True
     else:
         return False
