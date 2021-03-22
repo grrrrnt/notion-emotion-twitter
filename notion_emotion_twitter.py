@@ -6,11 +6,17 @@ from langdetect import detect
 from textblob import TextBlob
 
 class CS4248BestClass:
+    def __init__(self):
+        csv = pd.read_csv('abbreviations.csv')
+        self.patterns = [(re.compile(r'\b' + abbrev + r'\b', re.IGNORECASE), replace)
+                for abbrev, replace in zip(csv.abbreviation, csv.replacement)]
+
     def preprocess(self, tweet):
         tweet = self.remove_mention(tweet)
         tweet = self.remove_url(tweet)
         tweet = self.alphanumerify(tweet)
         tweet = self.lowercase(tweet)
+        tweet = self.replace_abbrev(tweet)
         tweet = self.remove_stopwords(tweet)
         tweet = self.correct_spelling(tweet)
         print("preprocess")
@@ -43,6 +49,12 @@ class CS4248BestClass:
     def lowercase(self, tweet):
         # Not sure if this function is needed but it lowercase the string
         return tweet.lower()
+
+    def replace_abbrev(self, tweet):
+        # Replaces abbreviations/slang with full words/phrases
+        for pattern, replacement in self.patterns:
+            tweet = pattern.sub(replacement, tweet)
+        return tweet
 
     def remove_stopwords(self, tweet):
         # Remove the stopwords generated from the nltk corpus library
@@ -86,7 +98,7 @@ class CS4248BestClass:
         # NOTE: Need to split train and test set
         train = pd.read_csv('text_emotion.csv')
         # "tweet_id","sentiment","author","content"
-        test_string = "@tiffanylue 123 word a he's what! ice-cream misspellin! why doe the sun shin @tai_ping www.google.co https://aa http http://was.al.com wowwwww. I an am the is isnt it marvelous"
+        test_string = "@tiffanylue 123 word a he's what! ice-cream misspellin! why doe the sun shin @tai_ping www.google.co https://aa http http://was.al.com wowwwww. I an am the is isnt it marvelous lol omg b u r n"
         
         print(self.preprocess(test_string))
         print("main")
