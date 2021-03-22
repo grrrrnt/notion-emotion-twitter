@@ -8,8 +8,9 @@ def preprocess(tweet):
     tweet = alphanumerify(tweet)
     tweet = lowercase(tweet)
     tweet = remove_stopwords(tweet)
-
+    
     print("preprocess")
+    return tweet
 
 def remove_mention(tweet):
     # Removing tweets with mentions of other users
@@ -66,13 +67,9 @@ def main():
     train = pd.read_csv('text_emotion.csv')
     # "tweet_id","sentiment","author","content"
     test_string = "@tiffanylue 123 word a he's what! ice-cream @tai_ping www.google.co https://aa http http://was.al.com wowwwww. I an am the is isnt it marvelous"
-    print(alphanumerify(remove_mention(remove_url(test_string))))
-    print(is_min_threshold(test_string, 4))
+    
+    print(preprocess(test_string))
     print("main")
-    a = 'ABC Aaba 123 DASD'
-    print(caps_count(a))
-    print(a)
-    print(character_count('aaab sdas thiss is so coooool aba aaa'))
 
 if __name__ == "__main__":
     main()
