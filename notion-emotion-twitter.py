@@ -58,8 +58,8 @@ def exclamation_count(tweet):
     return re.subn(r'!', '', tweet)[1]
 
 def character_count(tweet):
-    # Returns the number of words with unncessary number of repeated characters
-    return 0
+    # Returns the number of words with unnecessary number of repeated characters (more than 2)
+    return re.subn(r'(.)\1{2,}', '', tweet)[1]
 
 def main():
     # NOTE: Need to split train and test set
@@ -72,6 +72,7 @@ def main():
     a = 'ABC Aaba 123 DASD'
     print(caps_count(a))
     print(a)
+    print(character_count('aaab sdas thiss is so coooool aba aaa'))
 
 if __name__ == "__main__":
     main()
