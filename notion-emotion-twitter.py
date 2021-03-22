@@ -1,6 +1,7 @@
 import pandas as pd
 from nltk.corpus import stopwords
 import re
+from langdetect import detect
 
 def preprocess(tweet):
     tweet = remove_mention(tweet)
@@ -8,9 +9,17 @@ def preprocess(tweet):
     tweet = alphanumerify(tweet)
     tweet = lowercase(tweet)
     tweet = remove_stopwords(tweet)
-    
     print("preprocess")
     return tweet
+
+## Method to check if a given text is in English
+## NOTE: Very short-text can give unexpected results, emoticons should be removed before calling this method
+def isEnglish(text):
+    language = detect(text)
+    if (language == "en"):
+        return True
+    else:
+        return False
 
 def remove_mention(tweet):
     # Removing tweets with mentions of other users
