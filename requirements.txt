@@ -1,4 +1,4 @@
-langdetect
+fasttext
 textblob
 nltk
 pandas

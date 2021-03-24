@@ -2,11 +2,14 @@ import re
 
 import pandas as pd
 from nltk.corpus import stopwords
-from langdetect import detect
 
 from textblob import TextBlob
 from spellchecker import SpellChecker
 from autocorrect import Speller
+import fasttext
+
+PRETRAINED_MODEL_PATH = 'lid.176.ftz'
+model = fasttext.load_model(PRETRAINED_MODEL_PATH)
 
 class CS4248BestClass:
     def __init__(self):
@@ -25,14 +28,16 @@ class CS4248BestClass:
         print("preprocess")
         return tweet
 
-    ## Method to check if a given text is in English
-    ## NOTE: Very short-text can give unexpected results, emoticons should be removed before calling this method
-    def isEnglish(self, text):
-        language = detect(text)
-        if (language == "en"):
-            return True
+    def remove_nonEnglish(self, tweet):
+        ## Removal of all non-english tweets
+        ## NOTE: Remove all short-text, shorten repeated words and remove emoticons for higher accuracies
+        tweet_list = [tweet]
+        language_prediction = model.predict(tweet)[0][0][0]
+        if (language_prediction != "__label__en"):
+            tweet = ''
         else:
-            return False
+            tweet = tweet
+        return tweet
 
     def remove_mention(self, tweet):
         # Removing tweets with mentions of other users
