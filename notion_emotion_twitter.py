@@ -3,7 +3,10 @@ import re
 import pandas as pd
 from nltk.corpus import stopwords
 from langdetect import detect
+
 from textblob import TextBlob
+from spellchecker import SpellChecker
+from autocorrect import Speller
 
 class CS4248BestClass:
     def __init__(self):
@@ -76,9 +79,19 @@ class CS4248BestClass:
 
     def correct_spelling(self, tweet):
         # Replaces misspelled words with corrected spellings
-        # Still not very accurate
-        # TODO: Consider other libraries
-        tweet = TextBlob(tweet).correct()
+
+        # Using textblob (Seemingly worst performing one)
+        # tweet = TextBlob(tweet).correct()
+
+        # Using autocorrect
+        # check = Speller(lang='en')
+        # tweet = check(tweet)
+
+        # Using spellchecker (Seemingly best performing one)
+        spell = SpellChecker()
+        words = tweet.split()
+        tweet = " ".join([spell.correction(word) for word in words])
+
         return tweet
 
     ################## FEATURES ##################
@@ -99,8 +112,9 @@ class CS4248BestClass:
         train = pd.read_csv('text_emotion.csv')
         # "tweet_id","sentiment","author","content"
         test_string = "@tiffanylue 123 word a he's what! ice-cream misspellin! why doe the sun shin @tai_ping www.google.co https://aa http http://was.al.com wowwwww. I an am the is isnt it marvelous lol omg b u r n"
-        
-        print(self.preprocess(test_string))
+        test_string2 = "ugh lost the remote  gotta actually move to change channel wtf #twat"
+
+        print(self.preprocess(test_string2))
         print("main")
 
 if __name__ == "__main__":

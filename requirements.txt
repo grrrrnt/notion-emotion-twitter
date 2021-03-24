@@ -1,2 +1,6 @@
 langdetect
 textblob
+nltk
+pandas
+pyspellchecker
+autocorrect
