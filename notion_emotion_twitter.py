@@ -2,10 +2,7 @@ import re
 
 import pandas as pd
 from nltk.corpus import stopwords
-
-from textblob import TextBlob
 from spellchecker import SpellChecker
-from autocorrect import Speller
 import fasttext
 
 PRETRAINED_MODEL_PATH = 'lid.176.ftz'
@@ -17,27 +14,32 @@ class CS4248BestClass:
         self.patterns = [(re.compile(r'\b' + abbrev + r'\b', re.IGNORECASE), replace)
                 for abbrev, replace in zip(csv.abbreviation, csv.replacement)]
 
-    def preprocess(self, tweet):
-        tweet = self.remove_mention(tweet)
-        tweet = self.remove_url(tweet)
-        tweet = self.alphanumerify(tweet)
-        tweet = self.lowercase(tweet)
-        tweet = self.replace_abbrev(tweet)
-        tweet = self.remove_stopwords(tweet)
-        tweet = self.correct_spelling(tweet)
-        print("preprocess")
-        return tweet
+    ################## PREPROCESSING ##################
 
-    def remove_nonEnglish(self, tweet):
+    def preprocess(self, tweets):
+        data = []
+        for tweet in tweets:
+            if not self.is_min_threshold(tweet, 4):
+                continue
+            tweet = self.remove_mention(tweet)
+            tweet = self.remove_url(tweet)
+            tweet, features = self.extract_features(tweet)
+            tweet = self.alphanumerify(tweet)
+            tweet = self.lowercase(tweet)
+            tweet = self.replace_abbrev(tweet)
+            tweet = self.remove_stopwords(tweet)
+            if not self.is_english:
+                print("not english")
+                continue
+            tweet = self.correct_spelling(tweet)
+            data.append((tweet, features))
+        return data
+
+    def is_english(self, tweet):
         ## Removal of all non-english tweets
         ## NOTE: Remove all short-text, shorten repeated words and remove emoticons for higher accuracies
-        tweet_list = [tweet]
         language_prediction = model.predict(tweet)[0][0][0]
-        if (language_prediction != "__label__en"):
-            tweet = ''
-        else:
-            tweet = tweet
-        return tweet
+        return language_prediction == "__label__en"
 
     def remove_mention(self, tweet):
         # Removing tweets with mentions of other users
@@ -75,31 +77,28 @@ class CS4248BestClass:
                 tweet = re.sub(pattern, ' ', tweet)
         return tweet
 
-    def is_min_threshold(self, tweet, threshold):
+    def is_min_threshold(self, tweet, threshold=4):
         # Returns a boolean that reflect if the tweet meet the minimum threshold
-        # Default threshold is 4
-        threshold = 4
         words = tweet.split()
-        return (len(words) > threshold)
+        return len(words) >= threshold
 
     def correct_spelling(self, tweet):
         # Replaces misspelled words with corrected spellings
-
-        # Using textblob (Seemingly worst performing one)
-        # tweet = TextBlob(tweet).correct()
-
-        # Using autocorrect
-        # check = Speller(lang='en')
-        # tweet = check(tweet)
-
-        # Using spellchecker (Seemingly best performing one)
+        # # Using spellchecker (seems to perform better than textblob & autocorrect libraries)
         spell = SpellChecker()
         words = tweet.split()
         tweet = " ".join([spell.correction(word) for word in words])
-
         return tweet
 
     ################## FEATURES ##################
+
+    def extract_features(self, tweet):
+        features = {}
+        features['caps'] = self.caps_count(tweet)
+        features['exclamation'] = self.exclamation_count(tweet)
+        tweet, features['character'] = self.character_count(tweet)
+        return tweet, features
+
     def caps_count(self, tweet):
         # Returns the number of words that are all capitalised in the tweet
         return re.subn(r'[A-Z]+\b', '', tweet)[1]
@@ -110,17 +109,18 @@ class CS4248BestClass:
 
     def character_count(self, tweet):
         # Returns the number of words with unnecessary number of repeated characters (more than 2)
-        return re.subn(r'(.)\1{2,}', '', tweet)[1]
+        # Shortens repeated characters into single character
+        return  re.subn(r'([A-Za-z])\1{2,}', r'\1', tweet)
 
     def main(self):
         # NOTE: Need to split train and test set
-        train = pd.read_csv('text_emotion.csv')
-        # "tweet_id","sentiment","author","content"
-        test_string = "@tiffanylue 123 word a he's what! ice-cream misspellin! why doe the sun shin @tai_ping www.google.co https://aa http http://was.al.com wowwwww. I an am the is isnt it marvelous lol omg b u r n"
-        test_string2 = "ugh lost the remote  gotta actually move to change channel wtf #twat"
+        train = pd.read_csv('text_emotion_sample.csv')
+        content_train = train['content']
+        sentiment_train = train['sentiment']
 
-        print(self.preprocess(test_string2))
-        print("main")
+        tweets = self.preprocess(content_train)
+        for tweet in tweets:
+            print(tweet)    # (tweet, features)
 
 if __name__ == "__main__":
     CS4248BestClass().main()

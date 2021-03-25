@@ -1,6 +1,6 @@
+pybind11
 fasttext
 textblob
 nltk
 pandas
 pyspellchecker
-autocorrect
