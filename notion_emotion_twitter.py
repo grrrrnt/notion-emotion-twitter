@@ -28,8 +28,7 @@ class CS4248BestClass:
             tweet = self.lowercase(tweet)
             tweet = self.replace_abbrev(tweet)
             tweet = self.remove_stopwords(tweet)
-            if not self.is_english:
-                print("not english")
+            if not self.is_english(tweet):
                 continue
             tweet = self.correct_spelling(tweet)
             data.append((tweet, features))
@@ -38,7 +37,7 @@ class CS4248BestClass:
     def is_english(self, tweet):
         ## Removal of all non-english tweets
         ## NOTE: Remove all short-text, shorten repeated words and remove emoticons for higher accuracies
-        language_prediction = model.predict(tweet)[0][0][0]
+        language_prediction = model.predict(tweet)[0][0]
         return language_prediction == "__label__en"
 
     def remove_mention(self, tweet):
@@ -121,7 +120,6 @@ class CS4248BestClass:
         content_train = train['content']
         sentiment_train = train['sentiment']
 
-        content_train = ["hahahaha LOLOL this is really funnyyyyyyy"]
         tweets = self.preprocess(content_train)
         for tweet in tweets:
             print(tweet)    # (tweet, features)
