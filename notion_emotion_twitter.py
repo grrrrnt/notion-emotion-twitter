@@ -75,7 +75,7 @@ class CS4248BestClass:
                 tweet = re.sub(pattern, ' ', tweet)
         return tweet
 
-    def is_min_threshold(tweet, threshold):
+    def is_min_threshold(self, tweet, threshold):
         # Returns a boolean that reflect if the tweet meet the minimum threshold
         # Default threshold is 4
         threshold = 4
