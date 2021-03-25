@@ -110,7 +110,10 @@ class CS4248BestClass:
     def character_count(self, tweet):
         # Returns the number of words with unnecessary number of repeated characters (more than 2)
         # Shortens repeated characters into single character
-        return  re.subn(r'([A-Za-z])\1{2,}', r'\1', tweet)
+        replacements = [(r'([Hh][Aa]){2,}', r'haha'), (r'[Ll]([Oo][Ll]){2,}', r'lol')]
+        for old, new in replacements:
+            tweet = re.sub(old, new, tweet)
+        return re.subn(r'([A-Za-z])\1{2,}', r'\1', tweet)
 
     def main(self):
         # NOTE: Need to split train and test set
@@ -118,6 +121,7 @@ class CS4248BestClass:
         content_train = train['content']
         sentiment_train = train['sentiment']
 
+        content_train = ["hahahaha LOLOL this is really funnyyyyyyy"]
         tweets = self.preprocess(content_train)
         for tweet in tweets:
             print(tweet)    # (tweet, features)
