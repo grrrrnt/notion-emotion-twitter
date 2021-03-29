@@ -11,6 +11,8 @@ from nltk.util import ngrams
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn import preprocessing
 
 class CS4248BestClass:
     ABBREV_CSV = pd.read_csv('abbreviations.csv')
