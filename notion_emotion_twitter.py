@@ -16,6 +16,7 @@ class CS4248BestClass:
     PRETRAINED_MODEL_PATH = 'lid.176.ftz'
     LANGUAGE_MODEL = fasttext.load_model(PRETRAINED_MODEL_PATH)
     SPELL = SpellChecker(distance=1)
+    LEMMATIZER = WordNetLemmatizer()
 
     ################## PREPROCESSING ##################
 
@@ -138,7 +139,7 @@ class CS4248BestClass:
         return model
 
     def emotion_lexicon_score(self, tweet):
-        # Returns a 10-dimensional array representing the emotion
+        # Returns a dictionary representing sum of word emotion
         words = tweet.split()
         tweet_emotion = {
             'anticipation': 0,
@@ -153,7 +154,7 @@ class CS4248BestClass:
             'trust': 0
         }
         for word in words:
-            emotion = NRCLex(lemmatizer.lemmatize(word))
+            emotion = NRCLex(LEMMATIZER.lemmatize(word))
             word_emotion = emotion.raw_emotion_scores
             for key, value in word_emotion.items():
                 tweet_emotion[key] += value
