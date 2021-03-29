@@ -7,6 +7,7 @@ from nltk.stem import WordNetLemmatizer
 from spellchecker import SpellChecker
 import fasttext
 from nrclex import NRCLex
+from nltk.util import ngrams
 
 class CS4248BestClass:
     ABBREV_CSV = pd.read_csv('abbreviations.csv')
@@ -119,6 +120,7 @@ class CS4248BestClass:
     CHAR_REPLACEMENTS = [(re.compile(pattern), replacement)
             for pattern, replacement in [(r'([Hh][Aa]){2,}', r'haha'), (r'[Ll]([Oo][Ll]){2,}', r'lol')]]
     CHAR_PATTERN = re.compile(r'([A-Za-z])\1{2,}')
+    
     def character_count(self, tweet):
         # Returns the number of words with unnecessary number of repeated characters (more than 2)
         # Shortens repeated characters into single character
@@ -160,6 +162,12 @@ class CS4248BestClass:
                 tweet_emotion[key] += value
         return tweet_emotion
 
+    def generate_ngram(self, tweet, n):
+        # Return a list of all the ngrams in a tweet
+        tokens = [token for token in tweet.split(" ") if token != ""]
+        return list(ngrams(tokens, n))
+
+
     ################## DRIVER ##################
 
     def main(self):
@@ -170,6 +178,7 @@ class CS4248BestClass:
         
         tweets = self.preprocess(content_train)
         for tweet in tweets:
+            # print(self.generate_ngram(tweet,3))
             pprint.pprint(tweet)    # (tweet, features)
 
         model = self.train_embeddings(pd.read_csv('text_emotion.csv').content)
