@@ -1,3 +1,4 @@
+import os
 import re
 import pprint
 import pandas as pd
@@ -7,15 +8,14 @@ from spellchecker import SpellChecker
 import fasttext
 from nrclex import NRCLex
 
-PRETRAINED_MODEL_PATH = 'lid.176.ftz'
-model = fasttext.load_model(PRETRAINED_MODEL_PATH)
-lemmatizer = WordNetLemmatizer()
-
 class CS4248BestClass:
-    def __init__(self):
-        csv = pd.read_csv('abbreviations.csv')
-        self.patterns = [(re.compile(r'\b' + abbrev + r'\b', re.IGNORECASE), replace)
-                for abbrev, replace in zip(csv.abbreviation, csv.replacement)]
+    ABBREV_CSV = pd.read_csv('abbreviations.csv')
+    ABBREV_DICT = dict(zip(ABBREV_CSV.abbreviation, ABBREV_CSV.replacement))
+    WORD_PATTERN = re.compile('\w+')
+    STOPWORDS = stopwords.words('english')
+    PRETRAINED_MODEL_PATH = 'lid.176.ftz'
+    LANGUAGE_MODEL = fasttext.load_model(PRETRAINED_MODEL_PATH)
+    SPELL = SpellChecker(distance=1)
 
     ################## PREPROCESSING ##################
 
@@ -40,7 +40,7 @@ class CS4248BestClass:
     def is_english(self, tweet):
         ## Removal of all non-english tweets
         ## NOTE: Remove all short-text, shorten repeated words and remove emoticons for higher accuracies
-        language_prediction = model.predict(tweet)[0][0]
+        language_prediction = self.LANGUAGE_MODEL.predict(tweet)[0][0]
         return language_prediction == "__label__en"
 
     def remove_mention(self, tweet):
@@ -64,20 +64,11 @@ class CS4248BestClass:
 
     def replace_abbrev(self, tweet):
         # Replaces abbreviations/slang with full words/phrases
-        for pattern, replacement in self.patterns:
-            tweet = pattern.sub(replacement, tweet)
-        return tweet
+        return self.WORD_PATTERN.sub(self.replace_word, tweet)
 
     def remove_stopwords(self, tweet):
         # Remove the stopwords generated from the nltk corpus library
-        # List of stopwords
-        STOPWORDS = stopwords.words('english')
-        words = tweet.split()
-        for word in words:
-            if word in STOPWORDS:
-                pattern = '(?:^|\W)' + word + '(?:$|\W)'
-                tweet = re.sub(pattern, ' ', tweet)
-        return tweet
+        return self.WORD_PATTERN.sub(self.remove_stopword, tweet)
 
     def is_min_threshold(self, tweet, threshold=4):
         # Returns a boolean that reflect if the tweet meet the minimum threshold
@@ -87,10 +78,25 @@ class CS4248BestClass:
     def correct_spelling(self, tweet):
         # Replaces misspelled words with corrected spellings
         # # Using spellchecker (seems to perform better than textblob & autocorrect libraries)
-        spell = SpellChecker()
         words = tweet.split()
-        tweet = " ".join([spell.correction(word) for word in words])
+        tweet = " ".join([self.SPELL.correction(word) for word in words])
         return tweet
+
+    def replace_word(self, matchobj):
+        # Helper function to replace abbreviations
+        word = matchobj.group(0)
+        if word in self.ABBREV_DICT:
+            return self.ABBREV_DICT[word]
+        else:
+            return word
+
+    def remove_stopword(self, matchobj):
+        # Helper function to remove stopwords
+        word = matchobj.group(0)
+        if word in self.STOPWORDS:
+            return ''
+        else:
+            return word
 
     ################## FEATURES ##################
 
@@ -110,13 +116,26 @@ class CS4248BestClass:
         # Returns the number of times '!' appeared in the tweet
         return re.subn(r'!', '', tweet)[1]
 
+    CHAR_REPLACEMENTS = [(re.compile(pattern), replacement)
+            for pattern, replacement in [(r'([Hh][Aa]){2,}', r'haha'), (r'[Ll]([Oo][Ll]){2,}', r'lol')]]
+    CHAR_PATTERN = re.compile(r'([A-Za-z])\1{2,}')
     def character_count(self, tweet):
         # Returns the number of words with unnecessary number of repeated characters (more than 2)
         # Shortens repeated characters into single character
-        replacements = [(r'([Hh][Aa]){2,}', r'haha'), (r'[Ll]([Oo][Ll]){2,}', r'lol')]
-        for old, new in replacements:
-            tweet = re.sub(old, new, tweet)
-        return re.subn(r'([A-Za-z])\1{2,}', r'\1', tweet)
+        for pattern, new in self.CHAR_REPLACEMENTS:
+            tweet = pattern.sub(new, tweet)
+        return self.CHAR_PATTERN.subn(r'\1', tweet)
+
+    def train_embeddings(self, content):
+        content_file_name = 'text_content.txt'
+        tweets = self.preprocess(content)
+        with open(content_file_name, 'w') as f:
+            f.writelines(tweet for tweet, _ in tweets)
+        # According to fastText API https://fasttext.cc/docs/en/python-module.html
+        # Default parameters are skipgram, dimensions = 100, window size = 5
+        model = fasttext.train_unsupervised(content_file_name)
+        os.remove(content_file_name)
+        return model
 
     def emotion_lexicon_score(self, tweet):
         # Returns a 10-dimensional array representing the emotion
@@ -151,6 +170,9 @@ class CS4248BestClass:
         tweets = self.preprocess(content_train)
         for tweet in tweets:
             pprint.pprint(tweet)    # (tweet, features)
+
+        model = self.train_embeddings(pd.read_csv('text_emotion.csv').content)
+        print(model.get_nearest_neighbors('friday'))
 
 if __name__ == "__main__":
     CS4248BestClass().main()
