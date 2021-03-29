@@ -8,6 +8,9 @@ from spellchecker import SpellChecker
 import fasttext
 from nrclex import NRCLex
 from nltk.util import ngrams
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfTransformer
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 class CS4248BestClass:
     ABBREV_CSV = pd.read_csv('abbreviations.csv')
@@ -167,6 +170,14 @@ class CS4248BestClass:
         tokens = [token for token in tweet.split(" ") if token != ""]
         return list(ngrams(tokens, n))
 
+    def TFIDF(self, tweet, sentiment):
+        CV = CountVectorizer()
+        training_frequency = CV.fit_transform(tweet)
+        Tfid = TfidfTransformer()
+
+        X_train = Tfid.fit_transform(training_frequency)
+        y_train = sentiment
+
 
     ################## DRIVER ##################
 
@@ -178,7 +189,8 @@ class CS4248BestClass:
         
         tweets = self.preprocess(content_train)
         for tweet in tweets:
-            # print(self.generate_ngram(tweet,3))
+            # print(tweet[0])
+            # print(self.generate_ngram(tweet[0],3))
             pprint.pprint(tweet)    # (tweet, features)
 
         model = self.train_embeddings(pd.read_csv('text_emotion.csv').content)
