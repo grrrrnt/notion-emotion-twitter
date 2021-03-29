@@ -16,7 +16,6 @@ class CS4248BestClass:
     PRETRAINED_MODEL_PATH = 'lid.176.ftz'
     LANGUAGE_MODEL = fasttext.load_model(PRETRAINED_MODEL_PATH)
     SPELL = SpellChecker(distance=1)
-    LEMMATIZER = WordNetLemmatizer()
 
     ################## PREPROCESSING ##################
 
@@ -153,8 +152,9 @@ class CS4248BestClass:
             'fear': 0,
             'trust': 0
         }
+        lemmatizer = WordNetLemmatizer()
         for word in words:
-            emotion = NRCLex(LEMMATIZER.lemmatize(word))
+            emotion = NRCLex(lemmatizer.lemmatize(word))
             word_emotion = emotion.raw_emotion_scores
             for key, value in word_emotion.items():
                 tweet_emotion[key] += value
