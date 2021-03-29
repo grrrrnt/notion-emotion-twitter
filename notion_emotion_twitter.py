@@ -1,3 +1,4 @@
+import os
 import re
 
 import pandas as pd
@@ -122,6 +123,17 @@ class CS4248BestClass:
             tweet = pattern.sub(new, tweet)
         return self.CHAR_PATTERN.subn(r'\1', tweet)
 
+    def train_embeddings(self, content):
+        content_file_name = 'text_content.txt'
+        tweets = self.preprocess(content)
+        with open(content_file_name, 'w') as f:
+            f.writelines(tweet for tweet, _ in tweets)
+        # According to fastText API https://fasttext.cc/docs/en/python-module.html
+        # Default parameters are skipgram, dimensions = 100, window size = 5
+        model = fasttext.train_unsupervised(content_file_name)
+        os.remove(content_file_name)
+        return model
+
     def main(self):
         # NOTE: Need to split train and test set
         train = pd.read_csv('text_emotion_sample.csv')
@@ -131,6 +143,9 @@ class CS4248BestClass:
         tweets = self.preprocess(content_train)
         for tweet in tweets:
             print(tweet)    # (tweet, features)
+
+        model = self.train_embeddings(pd.read_csv('text_emotion.csv').content)
+        print(model.get_nearest_neighbors('friday'))
 
 if __name__ == "__main__":
     CS4248BestClass().main()
