@@ -1,12 +1,15 @@
 import re
-
+import pprint
 import pandas as pd
 from nltk.corpus import stopwords
+from nltk.stem import WordNetLemmatizer
 from spellchecker import SpellChecker
 import fasttext
+from nrclex import NRCLex
 
 PRETRAINED_MODEL_PATH = 'lid.176.ftz'
 model = fasttext.load_model(PRETRAINED_MODEL_PATH)
+lemmatizer = WordNetLemmatizer()
 
 class CS4248BestClass:
     def __init__(self):
@@ -96,6 +99,7 @@ class CS4248BestClass:
         features['caps'] = self.caps_count(tweet)
         features['exclamation'] = self.exclamation_count(tweet)
         tweet, features['character'] = self.character_count(tweet)
+        features['lexicon'] = self.emotion_lexicon_score(tweet)
         return tweet, features
 
     def caps_count(self, tweet):
@@ -114,15 +118,39 @@ class CS4248BestClass:
             tweet = re.sub(old, new, tweet)
         return re.subn(r'([A-Za-z])\1{2,}', r'\1', tweet)
 
+    def emotion_lexicon_score(self, tweet):
+        # Returns a 10-dimensional array representing the emotion
+        words = tweet.split()
+        tweet_emotion = {
+            'anticipation': 0,
+            'joy': 0,
+            'negative': 0,
+            'sadness': 0,
+            'disgust': 0,
+            'positive': 0,
+            'anger': 0,
+            'surprise': 0,
+            'fear': 0,
+            'trust': 0
+        }
+        for word in words:
+            emotion = NRCLex(lemmatizer.lemmatize(word))
+            word_emotion = emotion.raw_emotion_scores
+            for key, value in word_emotion.items():
+                tweet_emotion[key] += value
+        return tweet_emotion
+
+    ################## DRIVER ##################
+
     def main(self):
         # NOTE: Need to split train and test set
         train = pd.read_csv('text_emotion_sample.csv')
         content_train = train['content']
         sentiment_train = train['sentiment']
-
+        
         tweets = self.preprocess(content_train)
         for tweet in tweets:
-            print(tweet)    # (tweet, features)
+            pprint.pprint(tweet)    # (tweet, features)
 
 if __name__ == "__main__":
     CS4248BestClass().main()
