@@ -23,11 +23,13 @@ class CS4248BestClass:
 
     ################## PREPROCESSING ##################
 
-    def preprocess(self, tweets):
-        data = []
-        for tweet in tweets:
+    def preprocess(self, data):
+        preprocessed = []
+        for index, row in data.iterrows():
+            tweet = row['content']
+            sentiment = row['sentiment']
             if not self.is_min_threshold(tweet, 4):
-                continue
+                data.drop(index)
             tweet = self.remove_mention(tweet)
             tweet = self.remove_url(tweet)
             tweet, features = self.extract_features(tweet)
@@ -36,10 +38,10 @@ class CS4248BestClass:
             tweet = self.replace_abbrev(tweet)
             tweet = self.remove_stopwords(tweet)
             if not self.is_english(tweet):
-                continue
+                data.drop(index)
             tweet = self.correct_spelling(tweet)
-            data.append((tweet, features))
-        return data
+            preprocessed.append((tweet, sentiment, features))
+        return preprocessed
 
     def is_english(self, tweet):
         ## Removal of all non-english tweets
@@ -178,23 +180,20 @@ class CS4248BestClass:
         X_train = Tfid.fit_transform(training_frequency)
         y_train = sentiment
 
-
     ################## DRIVER ##################
 
     def main(self):
         # NOTE: Need to split train and test set
-        train = pd.read_csv('text_emotion_sample.csv')
-        content_train = train['content']
-        sentiment_train = train['sentiment']
+        data = pd.read_csv('text_emotion_sample.csv')
         
-        tweets = self.preprocess(content_train)
+        tweets = self.preprocess(data)
         for tweet in tweets:
             # print(tweet[0])
             # print(self.generate_ngram(tweet[0],3))
-            pprint.pprint(tweet)    # (tweet, features)
+            pprint.pprint(tweet)    # (tweet, sentiment, features)
 
-        model = self.train_embeddings(pd.read_csv('text_emotion.csv').content)
-        print(model.get_nearest_neighbors('friday'))
+        # model = self.train_embeddings(pd.read_csv('text_emotion.csv').content)
+        # print(model.get_nearest_neighbors('friday'))
 
 if __name__ == "__main__":
     CS4248BestClass().main()
