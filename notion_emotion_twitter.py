@@ -8,11 +8,15 @@ from spellchecker import SpellChecker
 import fasttext
 from nrclex import NRCLex
 from nltk.util import ngrams
+from sklearn.feature_extraction import DictVectorizer
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import f1_score
 from sklearn import preprocessing
+from sklearn.svm import SVC
 
 class CS4248BestClass:
     ABBREV_CSV = pd.read_csv('abbreviations.csv')
@@ -25,13 +29,13 @@ class CS4248BestClass:
 
     ################## PREPROCESSING ##################
 
-    def preprocess(self, data):
+    def preprocess(self, X, y):
+        data = list(zip(X, y))
         preprocessed = []
-        for index, row in data.iterrows():
-            tweet = row['content']
-            sentiment = row['sentiment']
+        for tweet, sentiment in data:
             if not self.is_min_threshold(tweet, 4):
-                data.drop(index)
+                # print(tweet + " -- Tweet removed due to word threshold")
+                continue
             tweet = self.remove_mention(tweet)
             tweet = self.remove_url(tweet)
             tweet, features = self.extract_features(tweet)
@@ -39,9 +43,10 @@ class CS4248BestClass:
             tweet = self.lowercase(tweet)
             tweet = self.replace_abbrev(tweet)
             tweet = self.remove_stopwords(tweet)
-            if not self.is_english(tweet):
-                data.drop(index)
             tweet = self.correct_spelling(tweet)
+            if not self.is_english(tweet):
+                # print(tweet + " -- Tweet removed due non-English")
+                continue
             preprocessed.append((tweet, sentiment, features))
         return preprocessed
 
@@ -186,16 +191,37 @@ class CS4248BestClass:
 
     def main(self):
         # NOTE: Need to split train and test set
-        data = pd.read_csv('text_emotion_sample.csv')
+        df = pd.read_csv('text_emotion.csv')
+        content = df['content']
+        sentiment = df['sentiment']
+        X_train, X_test, y_train, y_test = train_test_split(content, sentiment, test_size=0.8)
         
-        tweets = self.preprocess(data)
-        for tweet in tweets:
-            # print(tweet[0])
-            # print(self.generate_ngram(tweet[0],3))
-            pprint.pprint(tweet)    # (tweet, sentiment, features)
+        train = self.preprocess(X_train, y_train)
+        # for tweet in train:
+        #     # print(tweet[0])
+        #     # print(self.generate_ngram(tweet[0],3))
+            # pprint.pprint(tweet)    # (tweet, sentiment, features)
 
         # model = self.train_embeddings(pd.read_csv('text_emotion.csv').content)
         # print(model.get_nearest_neighbors('friday'))
+
+
+        # Model tested: SVC
+        model = SVC()
+        vec = DictVectorizer()
+        train_features = [tweet[2]['lexicon'] for tweet in train]
+        train_output = [tweet[1] for tweet in train]
+        train_matrix = vec.fit_transform(train_features).toarray()
+        model.fit(train_matrix, train_output)
+
+        test = self.preprocess(X_test, y_test)
+        test_features = [tweet[2]['lexicon'] for tweet in test]
+        test_output = [tweet[1] for tweet in test]
+        test_data = vec.transform(test_features).toarray()
+        prediction = model.predict(test_data)
+
+        score = f1_score(test_output, prediction, average='macro')
+        print('F1 score = {}'.format(score))
 
 if __name__ == "__main__":
     CS4248BestClass().main()
