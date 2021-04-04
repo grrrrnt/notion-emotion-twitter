@@ -208,16 +208,20 @@ class CS4248BestClass:
 
         # Model tested: SVC
         model = SVC()
-        vec = DictVectorizer()
-        train_features = [tweet[2]['lexicon'] for tweet in train]
+        # vec = DictVectorizer()
+        # train_features = [tweet[2]['lexicon'] for tweet in train]
+        train_features = [tweet[2]['character'] for tweet in train]
         train_output = [tweet[1] for tweet in train]
-        train_matrix = vec.fit_transform(train_features).toarray()
+        # train_matrix = vec.fit_transform(train_features).toarray()
+        train_matrix = [[x] for x in train_features]
         model.fit(train_matrix, train_output)
 
         test = self.preprocess(X_test, y_test)
-        test_features = [tweet[2]['lexicon'] for tweet in test]
+        # test_features = [tweet[2]['lexicon'] for tweet in test]
+        test_features = [tweet[2]['character'] for tweet in test]
         test_output = [tweet[1] for tweet in test]
-        test_data = vec.transform(test_features).toarray()
+        # test_data = vec.transform(test_features).toarray()
+        test_data = [[x] for x in test_features]
         prediction = model.predict(test_data)
 
         score = f1_score(test_output, prediction, average='macro')
