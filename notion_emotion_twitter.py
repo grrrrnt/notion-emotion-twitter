@@ -199,6 +199,7 @@ class CS4248BestClass:
         train = self.preprocess(X_train, y_train)
         test = self.preprocess(X_test, y_test)
 
+        # For the features of the training set
         caps_train = []
         exclamation_train = []
         character_train = []
@@ -210,6 +211,7 @@ class CS4248BestClass:
             character_train.append(tweet[2]['character'])
             sentiment_train.append(tweet[1])
 
+        # For the features of the test set
         caps_test = []
         exclamation_test = []
         character_test = []
@@ -231,31 +233,29 @@ class CS4248BestClass:
 
 
         # Model tested: SVC
-        # model = SVC()
-        # # vec = DictVectorizer()
-        # # train_features = [tweet[2]['lexicon'] for tweet in train]
-        # train_features = [tweet[2]['character'] for tweet in train]
-        # train_output = [tweet[1] for tweet in train]
-        # # train_matrix = vec.fit_transform(train_features).toarray()
-        # train_matrix = [[x] for x in train_features]
-        # model.fit(train_matrix, train_output)
+        model = SVC()
+        # vec = DictVectorizer()
+        # train_features = [tweet[2]['lexicon'] for tweet in train]
+        train_features = [tweet[2]['character'] for tweet in train]
+        train_output = [tweet[1] for tweet in train]
+        # train_matrix = vec.fit_transform(train_features).toarray()
+        train_matrix = [[x] for x in train_features]
+        model.fit(train_matrix, train_output)
 
-        # test = self.preprocess(X_test, y_test)
-        # # test_features = [tweet[2]['lexicon'] for tweet in test]
-        # test_features = [tweet[2]['character'] for tweet in test]
-        # test_output = [tweet[1] for tweet in test]
-        # # test_data = vec.transform(test_features).toarray()
-        # test_data = [[x] for x in test_features]
-        # prediction = model.predict(test_data)
+        # test_features = [tweet[2]['lexicon'] for tweet in test]
+        test_features = [tweet[2]['character'] for tweet in test]
+        test_output = [tweet[1] for tweet in test]
+        # test_data = vec.transform(test_features).toarray()
+        test_data = [[x] for x in test_features]
+        prediction = model.predict(test_data)
 
-        # score = f1_score(test_output, prediction, average='macro')
-        # print('F1 score = {}'.format(score))
+        score = f1_score(test_output, prediction, average='macro')
+        print('F1 score for SVC = {}'.format(score))
 
         # Model tested: KNN
         label_encoder = preprocessing.LabelEncoder()
 
         sentiment_encoded = label_encoder.fit_transform(sentiment_train)
-        # tweets_encoded = label_encoder.fit_transform(pd.read_csv('text_emotion.csv').content)
 
         caps_encoded = label_encoder.fit_transform(caps_train)
         exclamation_encoded = label_encoder.fit_transform(exclamation_train)
@@ -277,7 +277,7 @@ class CS4248BestClass:
         prediction = KNN_model.predict(features)
 
         score = f1_score(sentiment_encoded, prediction, average='macro')
-        print('F1 score = {}'.format(score))
+        print('F1 score for KNN = {}'.format(score))
 
 if __name__ == "__main__":
     CS4248BestClass().main()
