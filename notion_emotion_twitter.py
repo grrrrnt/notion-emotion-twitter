@@ -197,6 +197,32 @@ class CS4248BestClass:
         X_train, X_test, y_train, y_test = train_test_split(content, sentiment, test_size=0.8)
         
         train = self.preprocess(X_train, y_train)
+        test = self.preprocess(X_test, y_test)
+
+        # For the features of the training set
+        caps_train = []
+        exclamation_train = []
+        character_train = []
+        sentiment_train = []
+        
+        for tweet in train:
+            caps_train.append(tweet[2]['caps'])
+            exclamation_train.append(tweet[2]['exclamation'])
+            character_train.append(tweet[2]['character'])
+            sentiment_train.append(tweet[1])
+
+        # For the features of the test set
+        caps_test = []
+        exclamation_test = []
+        character_test = []
+        sentiment_test = []
+        
+        for tweet in test:
+            caps_test.append(tweet[2]['caps'])
+            exclamation_test.append(tweet[2]['exclamation'])
+            character_test.append(tweet[2]['character'])
+            sentiment_test.append(tweet[1])
+        
         # for tweet in train:
         #     # print(tweet[0])
         #     # print(self.generate_ngram(tweet[0],3))
@@ -216,7 +242,6 @@ class CS4248BestClass:
         train_matrix = [[x] for x in train_features]
         model.fit(train_matrix, train_output)
 
-        test = self.preprocess(X_test, y_test)
         # test_features = [tweet[2]['lexicon'] for tweet in test]
         test_features = [tweet[2]['character'] for tweet in test]
         test_output = [tweet[1] for tweet in test]
@@ -225,7 +250,34 @@ class CS4248BestClass:
         prediction = model.predict(test_data)
 
         score = f1_score(test_output, prediction, average='macro')
-        print('F1 score = {}'.format(score))
+        print('F1 score for SVC = {}'.format(score))
+
+        # Model tested: KNN
+        label_encoder = preprocessing.LabelEncoder()
+
+        sentiment_encoded = label_encoder.fit_transform(sentiment_train)
+
+        caps_encoded = label_encoder.fit_transform(caps_train)
+        exclamation_encoded = label_encoder.fit_transform(exclamation_train)
+        character_encoded = label_encoder.fit_transform(character_train)
+
+        features = list(zip(caps_encoded, exclamation_encoded))
+
+        KNN_model = KNeighborsClassifier(n_neighbors=3)
+        KNN_model.fit(features, sentiment_encoded)
+
+        sentiment_encoded = label_encoder.fit_transform(sentiment_test)
+
+        caps_test_encoded = label_encoder.fit_transform(caps_test)
+        exclamation_test_encoded = label_encoder.fit_transform(exclamation_test)
+        character_test_encoded = label_encoder.fit_transform(character_test)
+
+        features = list(zip(caps_test_encoded, exclamation_test_encoded))
+
+        prediction = KNN_model.predict(features)
+
+        score = f1_score(sentiment_encoded, prediction, average='macro')
+        print('F1 score for KNN = {}'.format(score))
 
 if __name__ == "__main__":
     CS4248BestClass().main()
