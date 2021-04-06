@@ -2,6 +2,7 @@ import os
 import re
 import pprint
 import pandas as pd
+import numpy as np
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 from spellchecker import SpellChecker
@@ -193,118 +194,71 @@ class CS4248BestClass:
     ################## DRIVER ##################
 
     def main(self):
-        # NOTE: Need to split train and test set
         df = pd.read_csv('text_emotion.csv')
         content = df['content']
         sentiment = df['sentiment']
-        X_train, X_test, y_train, y_test = train_test_split(content, sentiment, test_size=0.8)
+        X_train, X_test, y_train, y_test = train_test_split(content, sentiment, train_size=0.8)
         
         train = self.preprocess(X_train, y_train)
         test = self.preprocess(X_test, y_test)
 
-        # For the features of the training set
-        caps_train = []
-        exclamation_train = []
-        character_train = []
-        sentiment_train = []
-        
-        for tweet in train:
-            caps_train.append(tweet[2]['caps'])
-            exclamation_train.append(tweet[2]['exclamation'])
-            character_train.append(tweet[2]['character'])
-            sentiment_train.append(tweet[1])
+        models = {
+            'SVC': SVC(),
+            'KNN': KNeighborsClassifier(n_neighbors=3),
+            'RF' : RandomForestClassifier(n_estimators=100)
+        }
 
-        # For the features of the test set
-        caps_test = []
-        exclamation_test = []
-        character_test = []
-        sentiment_test = []
-        
-        for tweet in test:
-            caps_test.append(tweet[2]['caps'])
-            exclamation_test.append(tweet[2]['exclamation'])
-            character_test.append(tweet[2]['character'])
-            sentiment_test.append(tweet[1])
-        
-        # for tweet in train:
-        #     # print(tweet[0])
-        #     # print(self.generate_ngram(tweet[0],3))
-            # pprint.pprint(tweet)    # (tweet, sentiment, features)
+        # Select model here: 'SVC', 'KNN', 'RF'
+        model_label = 'SVC'
+        model = models[model_label]
 
+        # Select features here: 'caps', 'exclamation', 'character', 'lexicon'
+        features = ['lexicon']
+        
+        # Generate feature matrices for training and test sets
+        train_feature_matrix = self.generate_feature_matrix(model_label, features, train)
+        test_feature_matrix = self.generate_feature_matrix(model_label, features, test)
+        
+        # Generate output for training and test sets
+        train_output = self.generate_output(train)
+        test_output = self.generate_output(test)
+
+        # Test and score
+        model.fit(train_feature_matrix, train_output)
+        prediction = model.predict(test_feature_matrix)
+        score = f1_score(test_output, prediction, average='macro')
+        print('F1 score using {} = {}'.format(model_label, score))
+
+        # ET's stuff
         # model = self.train_embeddings(pd.read_csv('text_emotion.csv').content)
         # print(model.get_nearest_neighbors('friday'))
 
+    def generate_feature_matrix(self, model_label, features, data):
+        matrix = np.array([[] for _ in range(len(data))])
+        for feature in features:
+            label_encoder = preprocessing.LabelEncoder()
+            if feature == 'lexicon':
+                lexicon_matrix = np.empty((0,10))
+                for tweet in data:
+                    row = [x for x in tweet[2]['lexicon'].values()]
+                    lexicon_matrix = np.vstack((lexicon_matrix, row))
+                if model_label == 'KNN':
+                    encoded_lexicon_matrix = np.empty((len(data),0))
+                    for column in lexicon_matrix.T:
+                        new_column = label_encoder.fit_transform(column)
+                        encoded_lexicon_matrix = np.hstack((encoded_lexicon_matrix, np.transpose([new_column])))
+                    lexicon_matrix = encoded_lexicon_matrix
+                matrix = np.hstack((matrix, lexicon_matrix))
+            else:
+                feature_matrix = [tweet[2][feature] for tweet in data]
+                if model_label == 'KNN':
+                    feature_matrix = label_encoder.fit_transform(feature_matrix)
+                feature_matrix = [[x] for x in feature_matrix]
+                matrix = np.hstack((matrix, feature_matrix))
+        return matrix
 
-        # Model tested: SVC
-        model = SVC()
-        # vec = DictVectorizer()
-        # train_features = [tweet[2]['lexicon'] for tweet in train]
-        train_features = [tweet[2]['character'] for tweet in train]
-        train_output = [tweet[1] for tweet in train]
-        # train_matrix = vec.fit_transform(train_features).toarray()
-        train_matrix = [[x] for x in train_features]
-        model.fit(train_matrix, train_output)
-
-        # test_features = [tweet[2]['lexicon'] for tweet in test]
-        test_features = [tweet[2]['character'] for tweet in test]
-        test_output = [tweet[1] for tweet in test]
-        # test_data = vec.transform(test_features).toarray()
-        test_data = [[x] for x in test_features]
-        prediction = model.predict(test_data)
-
-        score = f1_score(test_output, prediction, average='macro')
-        print('F1 score for SVC = {}'.format(score))
-
-        # Model tested: KNN
-        label_encoder = preprocessing.LabelEncoder()
-
-        sentiment_encoded = label_encoder.fit_transform(sentiment_train)
-        caps_encoded = label_encoder.fit_transform(caps_train)
-        exclamation_encoded = label_encoder.fit_transform(exclamation_train)
-        character_encoded = label_encoder.fit_transform(character_train)
-
-        features = list(zip(caps_encoded, exclamation_encoded))
-
-        KNN_model = KNeighborsClassifier(n_neighbors=3)
-        KNN_model.fit(features, sentiment_encoded)
-
-        sentiment_encoded = label_encoder.fit_transform(sentiment_test)
-
-        caps_test_encoded = label_encoder.fit_transform(caps_test)
-        exclamation_test_encoded = label_encoder.fit_transform(exclamation_test)
-        character_test_encoded = label_encoder.fit_transform(character_test)
-
-        features = list(zip(caps_test_encoded, exclamation_test_encoded))
-
-        prediction = KNN_model.predict(features)
-
-        score = f1_score(sentiment_encoded, prediction, average='macro')
-        print('F1 score for KNN = {}'.format(score))
-
-        # Model tested: Random Forests
-        RF_model = RandomForestClassifier(n_estimators=100)
-
-        # Set up train_features (Character, Exclamation, CAPS)
-        char_train_features = [tweet[2]['character'] for tweet in train]           ## CHARACTERS
-        exclamation_train_features = [tweet[2]['exclamation'] for tweet in train]  ## EXCLAMATION
-        caps_train_features = [tweet[2]['caps'] for tweet in train]                ## CAPS
-        train_featList = [char_train_features, exclamation_train_features, caps_train_features]
-        train_output = [tweet[1] for tweet in train]
-
-        # Set up test_features (Character, Exclamation, CAPS)
-        char_test_features = [tweet[2]['character'] for tweet in test]           ## CHARACTERS
-        exclamation_test_features = [tweet[2]['exclamation'] for tweet in test]  ## EXCLAMATION
-        caps_test_features = [tweet[2]['caps'] for tweet in test]                ## CAPS
-        test_featList = [char_test_features, exclamation_test_features, caps_test_features]
-        test_output = [tweet[1] for tweet in test]
-
-        for i in range(len(train_featList)):
-            train_feats = [[x] for x in train_featList[i]]
-            test_feats = [[x] for x in test_featList[i]]
-            RF_model.fit(train_feats, train_output)
-            test_pred = RF_model.predict(test_feats)
-            score = f1_score(test_output, test_pred, average='macro')
-            print('F1 score for Random Forest: FEAT {} = {}'.format(i, score))
+    def generate_output(self, data):
+        return [tweet[1] for tweet in data]
 
 if __name__ == "__main__":
     CS4248BestClass().main()
