@@ -12,10 +12,13 @@ from sklearn.feature_extraction import DictVectorizer
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import f1_score
 from sklearn import preprocessing
+
+## Models import
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
 
 class CS4248BestClass:
@@ -256,7 +259,6 @@ class CS4248BestClass:
         label_encoder = preprocessing.LabelEncoder()
 
         sentiment_encoded = label_encoder.fit_transform(sentiment_train)
-
         caps_encoded = label_encoder.fit_transform(caps_train)
         exclamation_encoded = label_encoder.fit_transform(exclamation_train)
         character_encoded = label_encoder.fit_transform(character_train)
@@ -278,6 +280,31 @@ class CS4248BestClass:
 
         score = f1_score(sentiment_encoded, prediction, average='macro')
         print('F1 score for KNN = {}'.format(score))
+
+        # Model tested: Random Forests
+        RF_model = RandomForestClassifier(n_estimators=100)
+
+        # Set up train_features (Character, Exclamation, CAPS)
+        char_train_features = [tweet[2]['character'] for tweet in train]           ## CHARACTERS
+        exclamation_train_features = [tweet[2]['exclamation'] for tweet in train]  ## EXCLAMATION
+        caps_train_features = [tweet[2]['caps'] for tweet in train]                ## CAPS
+        train_featList = [char_train_features, exclamation_train_features, caps_train_features]
+        train_output = [tweet[1] for tweet in train]
+
+        # Set up test_features (Character, Exclamation, CAPS)
+        char_test_features = [tweet[2]['character'] for tweet in test]           ## CHARACTERS
+        exclamation_test_features = [tweet[2]['exclamation'] for tweet in test]  ## EXCLAMATION
+        caps_test_features = [tweet[2]['caps'] for tweet in test]                ## CAPS
+        test_featList = [char_test_features, exclamation_test_features, caps_test_features]
+        test_output = [tweet[1] for tweet in test]
+
+        for i in range(len(train_featList)):
+            train_feats = [[x] for x in train_featList[i]]
+            test_feats = [[x] for x in test_featList[i]]
+            RF_model.fit(train_feats, train_output)
+            test_pred = RF_model.predict(test_feats)
+            score = f1_score(test_output, test_pred, average='macro')
+            print('F1 score for Random Forest: FEAT {} = {}'.format(i, score))
 
 if __name__ == "__main__":
     CS4248BestClass().main()
