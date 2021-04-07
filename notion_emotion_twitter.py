@@ -30,6 +30,8 @@ class CS4248BestClass:
     PRETRAINED_MODEL_PATH = 'lid.176.ftz'
     LANGUAGE_MODEL = fasttext.load_model(PRETRAINED_MODEL_PATH)
     SPELL = SpellChecker(distance=1)
+    CV = CountVectorizer(ngram_range=[1,1])
+    TFID = TfidfTransformer(sublinear_tf=True)
 
     ################## PREPROCESSING ##################
 
@@ -183,14 +185,6 @@ class CS4248BestClass:
         tokens = [token for token in tweet.split(" ") if token != ""]
         return list(ngrams(tokens, n))
 
-    def TFIDF(self, tweet, sentiment):
-        CV = CountVectorizer()
-        training_frequency = CV.fit_transform(tweet)
-        Tfid = TfidfTransformer()
-
-        X_train = Tfid.fit_transform(training_frequency)
-        y_train = sentiment
-
     ################## DRIVER ##################
 
     def main(self):
@@ -209,15 +203,15 @@ class CS4248BestClass:
         }
 
         # Select model here: 'SVC', 'KNN', 'RF'
-        model_label = 'SVC'
+        model_label = 'KNN'
         model = models[model_label]
 
-        # Select features here: 'caps', 'exclamation', 'character', 'lexicon'
-        features = ['lexicon']
+        # Select features here: 'caps', 'exclamation', 'character', 'lexicon', 'tfidf'
+        features = ['tfidf']
         
         # Generate feature matrices for training and test sets
-        train_feature_matrix = self.generate_feature_matrix(model_label, features, train)
-        test_feature_matrix = self.generate_feature_matrix(model_label, features, test)
+        train_feature_matrix = self.generate_feature_matrix(model_label, features, train, False)
+        test_feature_matrix = self.generate_feature_matrix(model_label, features, test, True)
         
         # Generate output for training and test sets
         train_output = self.generate_output(train)
@@ -227,13 +221,13 @@ class CS4248BestClass:
         model.fit(train_feature_matrix, train_output)
         prediction = model.predict(test_feature_matrix)
         score = f1_score(test_output, prediction, average='macro')
-        print('F1 score using {} = {}'.format(model_label, score))
+        print('F1 score using {} with {} feature = {}'.format(model_label, features, score))
 
         # ET's stuff
         # model = self.train_embeddings(pd.read_csv('text_emotion.csv').content)
         # print(model.get_nearest_neighbors('friday'))
 
-    def generate_feature_matrix(self, model_label, features, data):
+    def generate_feature_matrix(self, model_label, features, data, isTest):
         matrix = np.array([[] for _ in range(len(data))])
         for feature in features:
             label_encoder = preprocessing.LabelEncoder()
@@ -249,6 +243,13 @@ class CS4248BestClass:
                         encoded_lexicon_matrix = np.hstack((encoded_lexicon_matrix, np.transpose([new_column])))
                     lexicon_matrix = encoded_lexicon_matrix
                 matrix = np.hstack((matrix, lexicon_matrix))
+            elif feature == 'tfidf':
+                if isTest:
+                    training_frequency = self.CV.transform([tweet[0] for tweet in data])
+                    matrix = self.TFID.transform(training_frequency)
+                else:
+                    training_frequency = self.CV.fit_transform([tweet[0] for tweet in data])
+                    matrix = self.TFID.fit_transform(training_frequency)
             else:
                 feature_matrix = [tweet[2][feature] for tweet in data]
                 if model_label == 'KNN':
