@@ -217,13 +217,9 @@ class CS4248BestClass:
         # Select features here: 'caps', 'exclamation', 'character', 'lexicon', 'ngram', 'tfidf'
         features = ['tfidf']
         
-        
-
         # Generate feature matrices for training and test sets
-        train_feature_matrix = self.generate_feature_matrix(model_label, features, train)
-        # test_feature_matrix = self.generate_feature_matrix(model_label, features, test)
-
-        test_feature_matrix = self.generate_test_feature_matrix(model_label, features, test)
+        train_feature_matrix = self.generate_feature_matrix(model_label, features, train, False)
+        test_feature_matrix = self.generate_feature_matrix(model_label, features, test, True)
         
         # Generate output for training and test sets
         train_output = self.generate_output(train)
@@ -233,48 +229,13 @@ class CS4248BestClass:
         model.fit(train_feature_matrix, train_output)
         prediction = model.predict(test_feature_matrix)
         score = f1_score(test_output, prediction, average='macro')
-        print('F1 score using {} = {}'.format(model_label, score))
+        print('F1 score using {} with {} feature = {}'.format(model_label, features, score))
 
         # ET's stuff
         # model = self.train_embeddings(pd.read_csv('text_emotion.csv').content)
         # print(model.get_nearest_neighbors('friday'))
-    
-    
-    def generate_test_feature_matrix(self, model_label, features, data):
-        matrix = np.array([[] for _ in range(len(data))])
-        for feature in features:
-            label_encoder = preprocessing.LabelEncoder()
-            if feature == 'lexicon':
-                lexicon_matrix = np.empty((0,10))
-                for tweet in data:
-                    row = [x for x in tweet[2]['lexicon'].values()]
-                    lexicon_matrix = np.vstack((lexicon_matrix, row))
-                if model_label == 'KNN':
-                    encoded_lexicon_matrix = np.empty((len(data),0))
-                    for column in lexicon_matrix.T:
-                        new_column = label_encoder.fit_transform(column)
-                        encoded_lexicon_matrix = np.hstack((encoded_lexicon_matrix, np.transpose([new_column])))
-                    lexicon_matrix = encoded_lexicon_matrix
-                matrix = np.hstack((matrix, lexicon_matrix))
-            elif feature == 'tfidf':
-                training_frequency = self.CV.transform([tweet[0] for tweet in data])
-                # TFID = TfidfTransformer(sublinear_tf=True)
-                matrix = self.TFID.transform(training_frequency)
-                
-                # vectorizer = TfidfVectorizer()
-                # feature_matrix = vectorizer.fit_transform([tweet[0] for tweet in data])
-                # print(feature_matrix)
-                # matrix = np.hstack((matrix, feature_matrix))
-            else:
-                feature_matrix = [tweet[2][feature] for tweet in data]
-                if model_label == 'KNN':
-                    feature_matrix = label_encoder.fit_transform(feature_matrix)
-                feature_matrix = [[x] for x in feature_matrix]
-                matrix = np.hstack((matrix, feature_matrix))
-        print (matrix.shape)
-        return matrix
 
-    def generate_feature_matrix(self, model_label, features, data):
+    def generate_feature_matrix(self, model_label, features, data, isTest):
         matrix = np.array([[] for _ in range(len(data))])
         for feature in features:
             label_encoder = preprocessing.LabelEncoder()
@@ -291,15 +252,12 @@ class CS4248BestClass:
                     lexicon_matrix = encoded_lexicon_matrix
                 matrix = np.hstack((matrix, lexicon_matrix))
             elif feature == 'tfidf':
-                # CV = CountVectorizer()
-                training_frequency = self.CV.fit_transform([tweet[0] for tweet in data])
-                # TFID = TfidfTransformer(sublinear_tf=True)
-                matrix = self.TFID.fit_transform(training_frequency)
-                
-                # vectorizer = TfidfVectorizer()
-                # feature_matrix = vectorizer.fit_transform([tweet[0] for tweet in data])
-                # print(feature_matrix)
-                # matrix = np.hstack((matrix, feature_matrix))
+                if isTest:
+                    training_frequency = self.CV.transform([tweet[0] for tweet in data])
+                    matrix = self.TFID.transform(training_frequency)
+                else:
+                    training_frequency = self.CV.fit_transform([tweet[0] for tweet in data])
+                    matrix = self.TFID.fit_transform(training_frequency)
             else:
                 feature_matrix = [tweet[2][feature] for tweet in data]
                 if model_label == 'KNN':
