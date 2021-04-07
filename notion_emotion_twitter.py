@@ -30,7 +30,7 @@ class CS4248BestClass:
     PRETRAINED_MODEL_PATH = 'lid.176.ftz'
     LANGUAGE_MODEL = fasttext.load_model(PRETRAINED_MODEL_PATH)
     SPELL = SpellChecker(distance=1)
-    CV = CountVectorizer()
+    CV = CountVectorizer(ngram_range=[1,1])
     TFID = TfidfTransformer(sublinear_tf=True)
 
     ################## PREPROCESSING ##################
@@ -185,18 +185,18 @@ class CS4248BestClass:
         tokens = [token for token in tweet.split(" ") if token != ""]
         return list(ngrams(tokens, n))
 
-    def TFIDF(self, tweet, sentiment):
-        CV = CountVectorizer()
-        training_frequency = CV.fit_transform(tweet)
-        Tfid = TfidfTransformer()
+    # def TFIDF(self, tweet, sentiment):
+    #     CV = CountVectorizer()
+    #     training_frequency = CV.fit_transform(tweet)
+    #     Tfid = TfidfTransformer()
 
-        X_train = Tfid.fit_transform(training_frequency)
-        y_train = sentiment
+    #     X_train = Tfid.fit_transform(training_frequency)
+    #     y_train = sentiment
 
     ################## DRIVER ##################
 
     def main(self):
-        df = pd.read_csv('text_emotion_sample.csv')
+        df = pd.read_csv('text_emotion.csv')
         content = df['content']
         sentiment = df['sentiment']
         X_train, X_test, y_train, y_test = train_test_split(content, sentiment, train_size=0.8)
@@ -211,7 +211,7 @@ class CS4248BestClass:
         }
 
         # Select model here: 'SVC', 'KNN', 'RF'
-        model_label = 'RF'
+        model_label = 'KNN'
         model = models[model_label]
 
         # Select features here: 'caps', 'exclamation', 'character', 'lexicon', 'ngram', 'tfidf'
@@ -264,7 +264,6 @@ class CS4248BestClass:
                     feature_matrix = label_encoder.fit_transform(feature_matrix)
                 feature_matrix = [[x] for x in feature_matrix]
                 matrix = np.hstack((matrix, feature_matrix))
-        print (matrix.shape)
         return matrix
 
     def generate_output(self, data):
