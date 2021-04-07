@@ -194,7 +194,7 @@ class CS4248BestClass:
     ################## DRIVER ##################
 
     def main(self):
-        df = pd.read_csv('text_emotion.csv')
+        df = pd.read_csv('text_emotion_sample.csv')
         content = df['content']
         sentiment = df['sentiment']
         X_train, X_test, y_train, y_test = train_test_split(content, sentiment, train_size=0.8)
@@ -209,11 +209,11 @@ class CS4248BestClass:
         }
 
         # Select model here: 'SVC', 'KNN', 'RF'
-        model_label = 'SVC'
+        model_label = 'KNN'
         model = models[model_label]
 
-        # Select features here: 'caps', 'exclamation', 'character', 'lexicon'
-        features = ['lexicon']
+        # Select features here: 'caps', 'exclamation', 'character', 'lexicon', 'ngram', 'tfidf'
+        features = ['tfidf']
         
         # Generate feature matrices for training and test sets
         train_feature_matrix = self.generate_feature_matrix(model_label, features, train)
@@ -249,12 +249,18 @@ class CS4248BestClass:
                         encoded_lexicon_matrix = np.hstack((encoded_lexicon_matrix, np.transpose([new_column])))
                     lexicon_matrix = encoded_lexicon_matrix
                 matrix = np.hstack((matrix, lexicon_matrix))
+            elif feature == 'tfidf':
+                vectorizer = TfidfVectorizer()
+                feature_matrix = vectorizer.fit_transform([tweet[0] for tweet in data])
+                print(feature_matrix)
+                matrix = np.hstack((matrix, feature_matrix))
             else:
                 feature_matrix = [tweet[2][feature] for tweet in data]
                 if model_label == 'KNN':
                     feature_matrix = label_encoder.fit_transform(feature_matrix)
                 feature_matrix = [[x] for x in feature_matrix]
                 matrix = np.hstack((matrix, feature_matrix))
+        print (matrix.shape)
         return matrix
 
     def generate_output(self, data):
