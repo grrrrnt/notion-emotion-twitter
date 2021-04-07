@@ -185,14 +185,6 @@ class CS4248BestClass:
         tokens = [token for token in tweet.split(" ") if token != ""]
         return list(ngrams(tokens, n))
 
-    # def TFIDF(self, tweet, sentiment):
-    #     CV = CountVectorizer()
-    #     training_frequency = CV.fit_transform(tweet)
-    #     Tfid = TfidfTransformer()
-
-    #     X_train = Tfid.fit_transform(training_frequency)
-    #     y_train = sentiment
-
     ################## DRIVER ##################
 
     def main(self):
@@ -214,7 +206,7 @@ class CS4248BestClass:
         model_label = 'KNN'
         model = models[model_label]
 
-        # Select features here: 'caps', 'exclamation', 'character', 'lexicon', 'ngram', 'tfidf'
+        # Select features here: 'caps', 'exclamation', 'character', 'lexicon', 'tfidf'
         features = ['tfidf']
         
         # Generate feature matrices for training and test sets
