@@ -194,7 +194,7 @@ class CS4248BestClass:
     ################## DRIVER ##################
 
     def main(self):
-        df = pd.read_csv('text_emotion_sample.csv')
+        df = pd.read_csv('text_emotion.csv')
         content = df['content']
         sentiment = df['sentiment']
         X_train, X_test, y_train, y_test = train_test_split(content, sentiment, train_size=0.8)
