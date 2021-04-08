@@ -37,6 +37,16 @@ class TwitterEmotion:
 
     ################## PREPROCESSING ##################
 
+    def clean(self, df):
+        df = df.drop(df[df['sentiment'] == 'empty'].index)
+        df = df.drop(df[df['sentiment'] == 'neutral'].index)
+        df = df.drop(df[df['sentiment'] == 'boredom'].index)
+        # df = df.drop(df[df['sentiment'] == 'surprise'].index)
+        df['sentiment'].replace(to_replace='hate', value='anger', inplace=True)
+        df['sentiment'].replace(to_replace=['love','fun','relief','enthusiasm'], value='happiness', inplace=True)
+        print(df.groupby('sentiment')['sentiment'].count().sort_values(ascending=False))
+        return df
+
     def preprocess(self, X, y):
         data = list(zip(X, y))
         preprocessed = []
@@ -195,6 +205,7 @@ class TwitterEmotion:
 
     def main(self):
         df = pd.read_csv('text_emotion.csv')
+        df = self.clean(df)
         content = df['content']
         sentiment = df['sentiment']
         X_train, X_test, y_train, y_test = train_test_split(content, sentiment, train_size=0.8)
@@ -210,11 +221,11 @@ class TwitterEmotion:
         }
 
         # Select model here: 'SVC', 'KNN', 'RF', 'MNB'
-        model_label = 'KNN'
+        model_label = 'SVC'
         model = models[model_label]
 
-        # Select features here: 'caps', 'exclamation', 'character', 'lexicon', 'tfidf'
-        features = ['tfidf', 'lexicon']
+        # Select features here: 'caps', 'exclamation', 'character', 'lexicon', 'tfidf', 'embed'
+        features = ['embed']
         
         # Generate feature matrices for training and test sets
         train_feature_matrix = self.generate_feature_matrix(model_label, features, train, False)
