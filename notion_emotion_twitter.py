@@ -194,7 +194,7 @@ class CS4248BestClass:
     ################## DRIVER ##################
 
     def main(self):
-        df = pd.read_csv('text_emotion.csv')
+        df = pd.read_csv('text_emotion_sample.csv')
         content = df['content']
         sentiment = df['sentiment']
         X_train, X_test, y_train, y_test = train_test_split(content, sentiment, train_size=0.8)
@@ -249,11 +249,12 @@ class CS4248BestClass:
             elif feature == 'tfidf':
                 if is_test:
                     training_frequency = self.CV.transform([tweet[0] for tweet in data])
-                    tdidf_matrix = self.TFID.transform(training_frequency).todense()
-                    matrix = np.hstack((matrix, tdidf_matrix))
+                    tfidf_matrix = self.TFID.transform(training_frequency).todense()
+                    matrix = np.hstack((matrix, tfidf_matrix))
                 else:
                     training_frequency = self.CV.fit_transform([tweet[0] for tweet in data])
-                    matrix = self.TFID.fit_transform(training_frequency)
+                    tfidf_matrix = self.TFID.fit_transform(training_frequency).todense()
+                    matrix = np.hstack((matrix, tfidf_matrix))
             elif feature == 'embed':
                 if not is_test:
                     self.model = self.train_embeddings(data, supervised=True)
