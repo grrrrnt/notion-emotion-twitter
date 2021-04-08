@@ -21,6 +21,7 @@ from sklearn import preprocessing
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
+from sklearn.neural_network import MLPClassifier
 
 class CS4248BestClass:
     ABBREV_CSV = pd.read_csv('abbreviations.csv')
@@ -203,11 +204,11 @@ class CS4248BestClass:
         }
 
         # Select model here: 'SVC', 'KNN', 'RF'
-        model_label = 'KNN'
+        model_label = 'RF'
         model = models[model_label]
 
         # Select features here: 'caps', 'exclamation', 'character', 'lexicon', 'tfidf'
-        features = ['tfidf']
+        features = ['tfidf', 'lexicon']
         
         # Generate feature matrices for training and test sets
         train_feature_matrix = self.generate_feature_matrix(model_label, features, train, False)
@@ -227,7 +228,7 @@ class CS4248BestClass:
         # model = self.train_embeddings(pd.read_csv('text_emotion.csv').content)
         # print(model.get_nearest_neighbors('friday'))
 
-    def generate_feature_matrix(self, model_label, features, data, isTest):
+    def generate_feature_matrix(self, model_label, features, data, is_test):
         matrix = np.array([[] for _ in range(len(data))])
         for feature in features:
             label_encoder = preprocessing.LabelEncoder()
@@ -244,12 +245,14 @@ class CS4248BestClass:
                     lexicon_matrix = encoded_lexicon_matrix
                 matrix = np.hstack((matrix, lexicon_matrix))
             elif feature == 'tfidf':
-                if isTest:
+                if is_test:
                     training_frequency = self.CV.transform([tweet[0] for tweet in data])
-                    matrix = self.TFID.transform(training_frequency)
+                    tdidf_matrix = self.TFID.transform(training_frequency).todense()
+                    matrix = np.hstack((matrix, tdidf_matrix))
                 else:
                     training_frequency = self.CV.fit_transform([tweet[0] for tweet in data])
-                    matrix = self.TFID.fit_transform(training_frequency)
+                    tdidf_matrix = self.TFID.fit_transform(training_frequency).todense()
+                    matrix = np.hstack((matrix, tdidf_matrix))
             else:
                 feature_matrix = [tweet[2][feature] for tweet in data]
                 if model_label == 'KNN':
