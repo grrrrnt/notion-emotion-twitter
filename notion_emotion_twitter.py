@@ -214,7 +214,7 @@ class TwitterEmotion:
         test = self.preprocess(X_test, y_test)
 
         models = {
-            'SVC': SVC(),
+            'SVC': SVC(kernel='sigmoid'),
             'KNN': KNeighborsClassifier(n_neighbors=3),
             'RF' : RandomForestClassifier(n_estimators=100),
             'MNB': MultinomialNB()
