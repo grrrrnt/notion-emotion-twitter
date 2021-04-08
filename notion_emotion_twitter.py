@@ -24,7 +24,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
 from sklearn.neural_network import MLPClassifier
 
-class CS4248BestClass:
+class TwitterEmotion:
     ABBREV_CSV = pd.read_csv('abbreviations.csv')
     ABBREV_DICT = dict(zip(ABBREV_CSV.abbreviation, ABBREV_CSV.replacement))
     WORD_PATTERN = re.compile('\w+')
@@ -273,4 +273,4 @@ class CS4248BestClass:
         return [tweet[1] for tweet in data]
 
 if __name__ == "__main__":
-    CS4248BestClass().main()
+    TwitterEmotion().main()
