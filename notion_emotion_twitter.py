@@ -146,14 +146,18 @@ class CS4248BestClass:
             tweet = pattern.sub(new, tweet)
         return self.CHAR_PATTERN.subn(r'\1', tweet)
 
-    def train_embeddings(self, content):
+    def train_embeddings(self, train, supervised):
         content_file_name = 'text_content.txt'
-        tweets = self.preprocess(content)
-        with open(content_file_name, 'w') as f:
-            f.writelines(tweet for tweet, _ in tweets)
-        # According to fastText API https://fasttext.cc/docs/en/python-module.html
-        # Default parameters are skipgram, dimensions = 100, window size = 5
-        model = fasttext.train_unsupervised(content_file_name)
+        if supervised:
+            with open(content_file_name, 'w') as f:
+                f.writelines(tweet + ' __label__' + sentiment + '\n' for tweet, sentiment, _ in train)
+            model = fasttext.train_supervised(content_file_name)
+        else:
+            with open(content_file_name, 'w') as f:
+                f.writelines(tweet + '\n' for tweet, _, _ in train)
+            # According to fastText API https://fasttext.cc/docs/en/python-module.html
+            # Default parameters are skipgram, dimensions = 100, window size = 5
+            model = fasttext.train_unsupervised(content_file_name)
         os.remove(content_file_name)
         return model
 
@@ -223,10 +227,6 @@ class CS4248BestClass:
         score = f1_score(test_output, prediction, average='macro')
         print('F1 score using {} with {} feature = {}'.format(model_label, features, score))
 
-        # ET's stuff
-        # model = self.train_embeddings(pd.read_csv('text_emotion.csv').content)
-        # print(model.get_nearest_neighbors('friday'))
-
     def generate_feature_matrix(self, model_label, features, data, isTest):
         matrix = np.array([[] for _ in range(len(data))])
         for feature in features:
@@ -250,6 +250,12 @@ class CS4248BestClass:
                 else:
                     training_frequency = self.CV.fit_transform([tweet[0] for tweet in data])
                     matrix = self.TFID.fit_transform(training_frequency)
+            elif feature == 'embed':
+                if not isTest:
+                    self.model = self.train_embeddings(data, supervised=True)
+                    print(self.model.get_nearest_neighbors('friday'))
+                embed = [self.model.get_sentence_vector(tweet) for tweet, _, _ in data]
+                matrix = np.hstack((matrix, embed))
             else:
                 feature_matrix = [tweet[2][feature] for tweet in data]
                 if model_label == 'KNN':
