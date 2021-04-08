@@ -15,6 +15,7 @@ from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import f1_score
+from sklearn.naive_bayes import MultinomialNB
 from sklearn import preprocessing
 
 ## Models import
@@ -203,7 +204,8 @@ class CS4248BestClass:
         models = {
             'SVC': SVC(),
             'KNN': KNeighborsClassifier(n_neighbors=3),
-            'RF' : RandomForestClassifier(n_estimators=100)
+            'RF' : RandomForestClassifier(n_estimators=100),
+            'MNB': MultinomialNB()
         }
 
         # Select model here: 'SVC', 'KNN', 'RF'
