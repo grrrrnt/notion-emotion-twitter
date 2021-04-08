@@ -15,11 +15,11 @@ from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import f1_score
-from sklearn.naive_bayes import MultinomialNB
 from sklearn import preprocessing
 
 ## Models import
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.naive_bayes import MultinomialNB
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
 
@@ -197,7 +197,7 @@ class CS4248BestClass:
         content = df['content']
         sentiment = df['sentiment']
         X_train, X_test, y_train, y_test = train_test_split(content, sentiment, train_size=0.8)
-        
+
         train = self.preprocess(X_train, y_train)
         test = self.preprocess(X_test, y_test)
 
@@ -208,7 +208,7 @@ class CS4248BestClass:
             'MNB': MultinomialNB()
         }
 
-        # Select model here: 'SVC', 'KNN', 'RF'
+        # Select model here: 'SVC', 'KNN', 'RF', 'MNB'
         model_label = 'KNN'
         model = models[model_label]
 
