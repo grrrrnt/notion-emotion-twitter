@@ -204,7 +204,7 @@ class CS4248BestClass:
 
         models = {
             'SVC': SVC(),
-            'KNN': KNeighborsClassifier(n_neighbors=3),
+            'KNN': KNeighborsClassifier(n_neighbors=1),
             'RF' : RandomForestClassifier(n_estimators=100),
             'MNB': MultinomialNB()
         }
@@ -213,8 +213,8 @@ class CS4248BestClass:
         model_label = 'KNN'
         model = models[model_label]
 
-        # Select features here: 'caps', 'exclamation', 'character', 'lexicon', 'tfidf'
-        features = ['tfidf', 'lexicon']
+        # Select features here: 'caps', 'exclamation', 'character', 'lexicon', 'tfidf', 'CV'
+        features = ['caps', 'CV']
         
         # Generate feature matrices for training and test sets
         train_feature_matrix = self.generate_feature_matrix(model_label, features, train, False)
@@ -255,6 +255,13 @@ class CS4248BestClass:
                     training_frequency = self.CV.fit_transform([tweet[0] for tweet in data])
                     tfidf_matrix = self.TFID.fit_transform(training_frequency).todense()
                     matrix = np.hstack((matrix, tfidf_matrix))
+            elif feature == 'CV':
+                if is_test:
+                    cv_matrix = self.CV.transform([tweet[0] for tweet in data]).todense()
+                    matrix = np.hstack((matrix, cv_matrix))
+                else:
+                    cv_matrix = self.CV.fit_transform([tweet[0] for tweet in data]).todense()
+                    matrix = np.hstack((matrix, cv_matrix))
             elif feature == 'embed':
                 if not is_test:
                     self.model = self.train_embeddings(data, supervised=True)
