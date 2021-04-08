@@ -6,3 +6,4 @@ pandas
 pyspellchecker
 nrclex
 numpy
+sklearn
