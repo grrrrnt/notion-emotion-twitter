@@ -37,7 +37,7 @@ class TwitterEmotion:
     SPELL = SpellChecker(distance=1)
     CV = CountVectorizer(ngram_range=[1,1])
     TFID = TfidfTransformer(sublinear_tf=True)
-    TFID_CV = [CountVectorizer(ngram_range=r) for r in [[1,3], [1,1], [2,2], [3,3]]]
+    TFID_CV = [CountVectorizer(ngram_range=r) for r in [[1,3], [1,1], [2,2], [3,3], [1,2]]]
 
     ################## PREPROCESSING ##################
 
@@ -232,7 +232,7 @@ class TwitterEmotion:
         model_label = 'SVC'
         model = models[model_label]
 
-        # Select features here: 'caps', 'exclamation', 'character', 'lexicon', 'tfidf[0-3]', 'embed', 'count'
+        # Select features here: 'caps', 'exclamation', 'character', 'lexicon', 'tfidf[0-4]', 'embed', 'count'
         feature_combinations = [['count'], ['embed'], ['lexicon'], ['caps'], ['exclamation'], ['character']]
 
         for features in feature_combinations:
