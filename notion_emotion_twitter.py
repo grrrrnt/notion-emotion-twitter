@@ -279,9 +279,15 @@ class TwitterEmotion:
                     matrix = np.hstack((matrix, cv_matrix))
             elif feature == 'embed':
                 if not is_test:
-                    self.model = self.train_embeddings(data, supervised=True)
-                    print(self.model.get_nearest_neighbors('friday'))
-                embed = [self.model.get_sentence_vector(tweet) for tweet, _, _ in data]
+                    self.embed_model = self.train_embeddings(data, supervised=True)
+                    print(self.embed_model.get_nearest_neighbors('friday'))
+                embed = [self.embed_model.get_sentence_vector(tweet) for tweet, _, _ in data]
+                if model_label == 'MNB':
+                    if is_test:
+                        embed = self.embed_scaler.transform(embed)
+                    else:
+                        self.embed_scaler = preprocessing.MinMaxScaler((0, 10))
+                        embed = self.embed_scaler.fit_transform(embed)
                 matrix = np.hstack((matrix, embed))
             else:
                 feature_matrix = [tweet[2][feature] for tweet in data]
