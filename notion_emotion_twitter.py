@@ -27,6 +27,7 @@ from sklearn.neural_network import MLPClassifier
 
 class TwitterEmotion:
     PROGRESS = True
+    USE_CACHE = True
     ABBREV_CSV = pd.read_csv('abbreviations.csv')
     ABBREV_DICT = dict(zip(ABBREV_CSV.abbreviation, ABBREV_CSV.replacement))
     WORD_PATTERN = re.compile('\w+')
@@ -232,9 +233,7 @@ class TwitterEmotion:
         model = models[model_label]
 
         # Select features here: 'caps', 'exclamation', 'character', 'lexicon', 'tfidf[0-3]', 'embed', 'count'
-        feature_combinations = [
-                ['caps', 'exclamation'],
-                ['tfidf1']]
+        feature_combinations = [['count'], ['embed'], ['lexicon'], ['caps'], ['exclamation'], ['character']]
 
         for features in feature_combinations:
             # Generate feature matrices for training and test sets
@@ -257,14 +256,21 @@ class TwitterEmotion:
     TEST_CACHE = {}
 
     def generate_feature_matrix(self, model_label, features, data, is_test):
-        if is_test:
-            cache = self.TEST_CACHE
+        if self.USE_CACHE:
+            if is_test:
+                cache = self.TEST_CACHE
+            else:
+                cache = self.TRAIN_CACHE
+            for feature in features:
+                if feature not in cache:
+                    cache[feature] = self.generate_feature(model_label, feature, data, is_test)
+            return np.hstack(list(cache[feature] for feature in features))
         else:
-            cache = self.TRAIN_CACHE
-        for feature in features:
-            if feature not in cache:
-                cache[feature] = self.generate_feature(model_label, feature, data, is_test)
-        return np.hstack(list(cache[feature] for feature in features))
+            matrix = np.empty((len(data), 0))
+            for feature in features:
+                feature_values = self.generate_feature(model_label, feature, data, is_test)
+                matrix = np.hstack((matrix, feature_values))
+            return matrix
 
     def generate_feature(self, model_label, feature, data, is_test):
         if self.PROGRESS:
