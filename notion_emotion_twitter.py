@@ -41,7 +41,6 @@ class TwitterEmotion:
         df = df.drop(df[df['sentiment'] == 'empty'].index)
         df = df.drop(df[df['sentiment'] == 'neutral'].index)
         df = df.drop(df[df['sentiment'] == 'boredom'].index)
-        # df = df.drop(df[df['sentiment'] == 'surprise'].index)
         df['sentiment'].replace(to_replace='hate', value='anger', inplace=True)
         df['sentiment'].replace(to_replace=['love','fun','relief','enthusiasm'], value='happiness', inplace=True)
         print(df.groupby('sentiment')['sentiment'].count().sort_values(ascending=False))
@@ -208,7 +207,12 @@ class TwitterEmotion:
         df = self.clean(df)
         content = df['content']
         sentiment = df['sentiment']
-        X_train, X_test, y_train, y_test = train_test_split(content, sentiment, train_size=0.8)
+
+        # Use this line for a randomised train-test split (tuning model parameters)
+        # X_train, X_test, y_train, y_test = train_test_split(content, sentiment, train_size=0.8)
+        
+        # Use this line for a fixed train-test split (comparing performance between models)
+        X_train, X_test, y_train, y_test = self.interval_train_test_split(content, sentiment)
 
         train = self.preprocess(X_train, y_train)
         test = self.preprocess(X_test, y_test)
@@ -289,6 +293,13 @@ class TwitterEmotion:
 
     def generate_output(self, data):
         return [tweet[1] for tweet in data]
+
+    def interval_train_test_split(self, X, y):
+        X_train = X.iloc[X.index % 5 != 0]
+        y_train = y.iloc[y.index % 5 != 0]
+        X_test = X.iloc[X.index % 5 == 0]
+        y_test = y.iloc[y.index % 5 == 0]
+        return X_train, X_test, y_train, y_test
 
 if __name__ == "__main__":
     TwitterEmotion().main()
