@@ -215,7 +215,7 @@ class TwitterEmotion:
 
         models = {
             'SVC': SVC(kernel='sigmoid'),
-            'KNN': KNeighborsClassifier(n_neighbors=3),
+            'KNN': KNeighborsClassifier(n_neighbors=1),
             'RF' : RandomForestClassifier(n_estimators=100),
             'MNB': MultinomialNB()
         }
@@ -224,8 +224,8 @@ class TwitterEmotion:
         model_label = 'SVC'
         model = models[model_label]
 
-        # Select features here: 'caps', 'exclamation', 'character', 'lexicon', 'tfidf', 'embed'
-        features = ['embed']
+        # Select features here: 'caps', 'exclamation', 'character', 'lexicon', 'tfidf', 'embed', 'count'
+        features = ['caps', 'count']
         
         # Generate feature matrices for training and test sets
         train_feature_matrix = self.generate_feature_matrix(model_label, features, train, False)
@@ -266,6 +266,13 @@ class TwitterEmotion:
                     training_frequency = self.CV.fit_transform([tweet[0] for tweet in data])
                     tfidf_matrix = self.TFID.fit_transform(training_frequency).todense()
                     matrix = np.hstack((matrix, tfidf_matrix))
+            elif feature == 'count':
+                if is_test:
+                    cv_matrix = self.CV.transform([tweet[0] for tweet in data]).todense()
+                    matrix = np.hstack((matrix, cv_matrix))
+                else:
+                    cv_matrix = self.CV.fit_transform([tweet[0] for tweet in data]).todense()
+                    matrix = np.hstack((matrix, cv_matrix))
             elif feature == 'embed':
                 if not is_test:
                     self.model = self.train_embeddings(data, supervised=True)
