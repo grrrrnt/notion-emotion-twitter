@@ -3,6 +3,7 @@ import re
 import pprint
 import pandas as pd
 import numpy as np
+from tqdm import tqdm
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 from spellchecker import SpellChecker
@@ -25,6 +26,7 @@ from sklearn.svm import SVC
 from sklearn.neural_network import MLPClassifier
 
 class TwitterEmotion:
+    PROGRESS = True
     ABBREV_CSV = pd.read_csv('abbreviations.csv')
     ABBREV_DICT = dict(zip(ABBREV_CSV.abbreviation, ABBREV_CSV.replacement))
     WORD_PATTERN = re.compile('\w+')
@@ -50,7 +52,7 @@ class TwitterEmotion:
     def preprocess(self, X, y):
         data = list(zip(X, y))
         preprocessed = []
-        for tweet, sentiment in data:
+        for tweet, sentiment in tqdm(data, 'Preprocess', disable=not self.PROGRESS):
             if not self.is_min_threshold(tweet, 4):
                 # print(tweet + " -- Tweet removed due to word threshold")
                 continue
@@ -243,6 +245,8 @@ class TwitterEmotion:
             train_output = self.generate_output(train)
             test_output = self.generate_output(test)
 
+            if self.PROGRESS:
+                print(f'Train {features}')
             # Test and score
             model.fit(train_feature_matrix, train_output)
             prediction = model.predict(test_feature_matrix)
@@ -263,6 +267,8 @@ class TwitterEmotion:
         return np.hstack(list(cache[feature] for feature in features))
 
     def generate_feature(self, model_label, feature, data, is_test):
+        if self.PROGRESS:
+            print(f'Generate {feature}, is_test={is_test}')
         label_encoder = preprocessing.LabelEncoder()
         if feature == 'lexicon':
             lexicon_matrix = np.empty((0,10))
