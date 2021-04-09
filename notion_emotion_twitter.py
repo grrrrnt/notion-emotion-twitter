@@ -229,21 +229,24 @@ class TwitterEmotion:
         model = models[model_label]
 
         # Select features here: 'caps', 'exclamation', 'character', 'lexicon', 'tfidf', 'embed', 'count'
-        features = ['caps', 'count']
-        
-        # Generate feature matrices for training and test sets
-        train_feature_matrix = self.generate_feature_matrix(model_label, features, train, False)
-        test_feature_matrix = self.generate_feature_matrix(model_label, features, test, True)
-        
-        # Generate output for training and test sets
-        train_output = self.generate_output(train)
-        test_output = self.generate_output(test)
+        feature_combinations = [
+                ['caps', 'exclamation'],
+                ['caps']]
 
-        # Test and score
-        model.fit(train_feature_matrix, train_output)
-        prediction = model.predict(test_feature_matrix)
-        score = f1_score(test_output, prediction, average='macro')
-        print('F1 score using {} with {} feature = {}'.format(model_label, features, score))
+        for features in feature_combinations:
+            # Generate feature matrices for training and test sets
+            train_feature_matrix = self.generate_feature_matrix(model_label, features, train, False)
+            test_feature_matrix = self.generate_feature_matrix(model_label, features, test, True)
+            
+            # Generate output for training and test sets
+            train_output = self.generate_output(train)
+            test_output = self.generate_output(test)
+
+            # Test and score
+            model.fit(train_feature_matrix, train_output)
+            prediction = model.predict(test_feature_matrix)
+            score = f1_score(test_output, prediction, average='macro')
+            print('F1 score using {} with {} feature = {}'.format(model_label, features, score))
 
     TRAIN_CACHE = {}
     TEST_CACHE = {}
