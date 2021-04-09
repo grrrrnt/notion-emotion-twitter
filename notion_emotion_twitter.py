@@ -245,57 +245,62 @@ class TwitterEmotion:
         score = f1_score(test_output, prediction, average='macro')
         print('F1 score using {} with {} feature = {}'.format(model_label, features, score))
 
+    TRAIN_CACHE = {}
+    TEST_CACHE = {}
+
     def generate_feature_matrix(self, model_label, features, data, is_test):
-        matrix = np.array([[] for _ in range(len(data))])
+        if is_test:
+            cache = self.TEST_CACHE
+        else:
+            cache = self.TRAIN_CACHE
         for feature in features:
-            label_encoder = preprocessing.LabelEncoder()
-            if feature == 'lexicon':
-                lexicon_matrix = np.empty((0,10))
-                for tweet in data:
-                    row = [x for x in tweet[2]['lexicon'].values()]
-                    lexicon_matrix = np.vstack((lexicon_matrix, row))
-                if model_label == 'KNN':
-                    encoded_lexicon_matrix = np.empty((len(data),0))
-                    for column in lexicon_matrix.T:
-                        new_column = label_encoder.fit_transform(column)
-                        encoded_lexicon_matrix = np.hstack((encoded_lexicon_matrix, np.transpose([new_column])))
-                    lexicon_matrix = encoded_lexicon_matrix
-                matrix = np.hstack((matrix, lexicon_matrix))
-            elif feature == 'tfidf':
-                if is_test:
-                    training_frequency = self.CV.transform([tweet[0] for tweet in data])
-                    tfidf_matrix = self.TFID.transform(training_frequency).todense()
-                    matrix = np.hstack((matrix, tfidf_matrix))
-                else:
-                    training_frequency = self.CV.fit_transform([tweet[0] for tweet in data])
-                    tfidf_matrix = self.TFID.fit_transform(training_frequency).todense()
-                    matrix = np.hstack((matrix, tfidf_matrix))
-            elif feature == 'count':
-                if is_test:
-                    cv_matrix = self.CV.transform([tweet[0] for tweet in data]).todense()
-                    matrix = np.hstack((matrix, cv_matrix))
-                else:
-                    cv_matrix = self.CV.fit_transform([tweet[0] for tweet in data]).todense()
-                    matrix = np.hstack((matrix, cv_matrix))
-            elif feature == 'embed':
-                if not is_test:
-                    self.embed_model = self.train_embeddings(data, supervised=True)
-                    print(self.embed_model.get_nearest_neighbors('friday'))
-                embed = [self.embed_model.get_sentence_vector(tweet) for tweet, _, _ in data]
-                if model_label == 'MNB':
-                    if is_test:
-                        embed = self.embed_scaler.transform(embed)
-                    else:
-                        self.embed_scaler = preprocessing.MinMaxScaler((0, 10))
-                        embed = self.embed_scaler.fit_transform(embed)
-                matrix = np.hstack((matrix, embed))
+            if feature not in cache:
+                cache[feature] = self.generate_feature(model_label, feature, data, is_test)
+        return np.hstack(list(cache[feature] for feature in features))
+
+    def generate_feature(self, model_label, feature, data, is_test):
+        label_encoder = preprocessing.LabelEncoder()
+        if feature == 'lexicon':
+            lexicon_matrix = np.empty((0,10))
+            for tweet in data:
+                row = [x for x in tweet[2]['lexicon'].values()]
+                lexicon_matrix = np.vstack((lexicon_matrix, row))
+            if model_label == 'KNN':
+                encoded_lexicon_matrix = np.empty((len(data),0))
+                for column in lexicon_matrix.T:
+                    new_column = label_encoder.fit_transform(column)
+                    encoded_lexicon_matrix = np.hstack((encoded_lexicon_matrix, np.transpose([new_column])))
+                lexicon_matrix = encoded_lexicon_matrix
+            return lexicon_matrix
+        elif feature == 'tfidf':
+            if is_test:
+                training_frequency = self.CV.transform([tweet[0] for tweet in data])
+                return self.TFID.transform(training_frequency).todense()
             else:
-                feature_matrix = [tweet[2][feature] for tweet in data]
-                if model_label == 'KNN':
-                    feature_matrix = label_encoder.fit_transform(feature_matrix)
-                feature_matrix = [[x] for x in feature_matrix]
-                matrix = np.hstack((matrix, feature_matrix))
-        return matrix
+                training_frequency = self.CV.fit_transform([tweet[0] for tweet in data])
+                return self.TFID.fit_transform(training_frequency).todense()
+        elif feature == 'count':
+            if is_test:
+                return self.CV.transform([tweet[0] for tweet in data]).todense()
+            else:
+                return self.CV.fit_transform([tweet[0] for tweet in data]).todense()
+        elif feature == 'embed':
+            if not is_test:
+                self.embed_model = self.train_embeddings(data, supervised=True)
+                print(self.embed_model.get_nearest_neighbors('friday'))
+            embed = [self.embed_model.get_sentence_vector(tweet) for tweet, _, _ in data]
+            if model_label == 'MNB':
+                if is_test:
+                    embed = self.embed_scaler.transform(embed)
+                else:
+                    self.embed_scaler = preprocessing.MinMaxScaler((0, 10))
+                    embed = self.embed_scaler.fit_transform(embed)
+            return embed
+        else:
+            feature_matrix = [tweet[2][feature] for tweet in data]
+            if model_label == 'KNN':
+                feature_matrix = label_encoder.fit_transform(feature_matrix)
+            return [[x] for x in feature_matrix]
 
     def generate_output(self, data):
         return [tweet[1] for tweet in data]
