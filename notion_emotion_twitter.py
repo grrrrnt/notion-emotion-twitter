@@ -34,6 +34,7 @@ class TwitterEmotion:
     SPELL = SpellChecker(distance=1)
     CV = CountVectorizer(ngram_range=[1,1])
     TFID = TfidfTransformer(sublinear_tf=True)
+    TFID_CV = [CountVectorizer(ngram_range=r) for r in [[1,3], [1,1], [2,2], [3,3]]]
 
     ################## PREPROCESSING ##################
 
@@ -228,10 +229,10 @@ class TwitterEmotion:
         model_label = 'SVC'
         model = models[model_label]
 
-        # Select features here: 'caps', 'exclamation', 'character', 'lexicon', 'tfidf', 'embed', 'count'
+        # Select features here: 'caps', 'exclamation', 'character', 'lexicon', 'tfidf[0-3]', 'embed', 'count'
         feature_combinations = [
                 ['caps', 'exclamation'],
-                ['caps']]
+                ['tfidf1']]
 
         for features in feature_combinations:
             # Generate feature matrices for training and test sets
@@ -275,12 +276,13 @@ class TwitterEmotion:
                     encoded_lexicon_matrix = np.hstack((encoded_lexicon_matrix, np.transpose([new_column])))
                 lexicon_matrix = encoded_lexicon_matrix
             return lexicon_matrix
-        elif feature == 'tfidf':
+        elif feature.startswith('tfidf'):
+            cv = self.TFID_CV[int(feature[5])]
             if is_test:
-                training_frequency = self.CV.transform([tweet[0] for tweet in data])
+                training_frequency = cv.transform([tweet[0] for tweet in data])
                 return self.TFID.transform(training_frequency).todense()
             else:
-                training_frequency = self.CV.fit_transform([tweet[0] for tweet in data])
+                training_frequency = cv.fit_transform([tweet[0] for tweet in data])
                 return self.TFID.fit_transform(training_frequency).todense()
         elif feature == 'count':
             if is_test:
