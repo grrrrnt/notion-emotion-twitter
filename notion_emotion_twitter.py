@@ -84,8 +84,8 @@ class TwitterEmotion:
 
     def remove_url(self, tweet):
         # Removing URLs
-        removed_http = re.sub(r'https?://[a-zA-Z0-9_.]+', ' ', tweet)
-        return re.sub(r'www\.[a-zA-Z0-9_.]+', ' ', removed_http)
+        removed_http = re.sub(r'https?://[a-zA-Z0-9_./]+', ' ', tweet)
+        return re.sub(r'www\.[a-zA-Z0-9_./]+', ' ', removed_http)
 
     def alphanumerify(self, tweet):
         # Removing any characters that are not alphabet or number
