@@ -329,5 +329,46 @@ class TwitterEmotion:
         y_test = y.iloc[y.index % 5 == 0]
         return X_train, X_test, y_train, y_test
 
+    ################## FOR QUESTION 2 ##################
+    # 1. Use best model to train on the entire train dataset
+    # 2. Get separate unseen dataset (Covid-19 dataset)
+    # 3. Retrieve the row numbers of those rows for which the model predicted (e.g) "anger"
+    # 4. Refer back to count vector (array) and sum up the unigrams
+    # 5. Output top 20 words ("sanity check")
+
+    def print_most_frequent_tokens(self):
+        model_label = 'RF'                                      # to update with best performing params
+        model = RandomForestClassifier(n_estimators=100)
+        features = ['count', 'embed', 'lexicon']
+        
+        train_df = pd.read_csv('text_emotion.csv')
+        train_df = self.clean(train_df)
+        train_content = train_df['content']
+        train_sentiment = train_df['sentiment']
+        train = self.preprocess(train_content, train_sentiment)
+        train_feature_matrix = self.generate_feature_matrix(model_label, features, train, False)
+        
+        test_df = pd.read_csv('covid19_tweets_sample.csv')       # using sample for now
+        test_content = test_df['text']
+        test = self.preprocess(test_content, np.empty((test_df.shape[0],)))
+        test_feature_matrix = self.generate_feature_matrix(model_label, features, test, True)
+
+        train_output = self.generate_output(train)
+        model.fit(train_feature_matrix, train_output)
+        prediction = model.predict(test_feature_matrix)
+
+        test_tweets = [x[0] for x in test]
+        output = pd.DataFrame({'tweet': test_tweets, 'prediction': prediction}, columns=['tweet', 'prediction'])
+        output.to_csv('output.csv', mode='w+')
+
+        sentiments = train_sentiment.unique()
+        most_frequent_tokens = {}
+        
+        # Look through entire dataframe, for each sentiment -> get word count
+        for sentiment in sentiments:
+            new_df = output[output['prediction'] == sentiment]
+            most_frequent_tokens[sentiment] = []
+
 if __name__ == "__main__":
-    TwitterEmotion().main()
+    # TwitterEmotion().main()
+    TwitterEmotion().print_most_frequent_tokens()
