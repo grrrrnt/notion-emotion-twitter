@@ -333,9 +333,8 @@ class TwitterEmotion:
     ################## FOR QUESTION 2 ##################
     # 1. Use best model to train on the entire train dataset
     # 2. Get separate unseen dataset (Covid-19 dataset)
-    # 3. Retrieve the row numbers of those rows for which the model predicted (e.g) "anger"
-    # 4. Refer back to count vector (array) and sum up the unigrams
-    # 5. Output top 20 words ("sanity check")
+    # 3. Get frequency count of tokens (keywords)
+    # 4. Output top 20 words
 
     def print_most_frequent_tokens(self):
         model_label = 'RF'                                      # to update with best performing params
