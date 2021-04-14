@@ -3,6 +3,7 @@ import re
 import pprint
 import pandas as pd
 import numpy as np
+from collections import Counter
 from tqdm import tqdm
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
@@ -348,7 +349,9 @@ class TwitterEmotion:
         train = self.preprocess(train_content, train_sentiment)
         train_feature_matrix = self.generate_feature_matrix(model_label, features, train, False)
         
-        test_df = pd.read_csv('covid19_tweets_sample.csv')       # using sample for now
+        # Select topical dataset:
+        # covid19_tweets(_sample).csv, vaccination_tweets(_sample).csv, trump_tweets.csv, elonmusk_tweets.csv
+        test_df = pd.read_csv('elonmusk_tweets.csv')
         test_content = test_df['text']
         test = self.preprocess(test_content, np.empty((test_df.shape[0],)))
         test_feature_matrix = self.generate_feature_matrix(model_label, features, test, True)
@@ -363,11 +366,12 @@ class TwitterEmotion:
 
         sentiments = train_sentiment.unique()
         most_frequent_tokens = {}
-        
-        # Look through entire dataframe, for each sentiment -> get word count
         for sentiment in sentiments:
             new_df = output[output['prediction'] == sentiment]
-            most_frequent_tokens[sentiment] = []
+            count = dict(pd.Series(' '.join(new_df['tweet']).split()).value_counts()[:20])
+            most_frequent_tokens[sentiment] = count
+
+        print(most_frequent_tokens)
 
 if __name__ == "__main__":
     # TwitterEmotion().main()
