@@ -7,3 +7,4 @@ pyspellchecker
 nrclex
 numpy
 sklearn
+matplotlib

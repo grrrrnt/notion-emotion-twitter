@@ -3,6 +3,7 @@ import re
 import pprint
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 from collections import Counter
 from tqdm import tqdm
 from nltk.corpus import stopwords
@@ -330,13 +331,14 @@ class TwitterEmotion:
         y_test = y.iloc[y.index % 5 == 0]
         return X_train, X_test, y_train, y_test
 
-    ################## FOR QUESTION 2 ##################
+    ################## FOR QUESTION 2 AND 3 ##################
     # 1. Use best model to train on the entire train dataset
     # 2. Get separate unseen dataset (Covid-19 dataset)
     # 3. Get frequency count of tokens (keywords)
     # 4. Output top 20 words
+    # 5. Display pie chart of emotion predictions
 
-    def print_most_frequent_tokens(self):
+    def test_on_unseen_dataset(self):
         model_label = 'RF'                                      # to update with best performing params
         model = RandomForestClassifier(n_estimators=100)
         features = ['count', 'embed', 'lexicon']
@@ -350,7 +352,7 @@ class TwitterEmotion:
         
         # Select topical dataset:
         # covid19_tweets(_sample).csv, vaccination_tweets(_sample).csv, trump_tweets.csv, elonmusk_tweets.csv
-        test_df = pd.read_csv('elonmusk_tweets.csv')
+        test_df = pd.read_csv('unseen_datasets/elonmusk_tweets.csv')
         test_content = test_df['text']
         test = self.preprocess(test_content, np.empty((test_df.shape[0],)))
         test_feature_matrix = self.generate_feature_matrix(model_label, features, test, True)
@@ -369,9 +371,15 @@ class TwitterEmotion:
             new_df = output[output['prediction'] == sentiment]
             count = dict(pd.Series(' '.join(new_df['tweet']).split()).value_counts()[:20])
             most_frequent_tokens[sentiment] = count
-
+        
+        # Print 20 most frequent tokens for each emotion
         print(most_frequent_tokens)
+        
+        # Display pie chart of emotions
+        chart = output['prediction'].value_counts().plot(kind='pie', autopct='%1.1f%%')
+        chart.get_figure().savefig('output')
+        plt.show()
 
 if __name__ == "__main__":
     # TwitterEmotion().main()
-    TwitterEmotion().print_most_frequent_tokens()
+    TwitterEmotion().test_on_unseen_dataset()
