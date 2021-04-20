@@ -30,5 +30,5 @@ Lastly, with the data file in _text_emotion.csv_, run our models with this comma
 python3 notion_emotion_twitter.py
 ```
 
-To modify the model that is being run, refer to line 234 of _notion_emotion_twitter.py_ and change it accordingly.
-To select the different features, refer to line 238 of _notion_emotion_twitter.py_ and change it accordingly.
+* To modify the model that is being run, refer to `line 234` of _notion_emotion_twitter.py_ and change it accordingly.
+* To select the different features, refer to `line 238` of _notion_emotion_twitter.py_ and change it accordingly.
