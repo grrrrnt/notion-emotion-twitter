@@ -38,7 +38,7 @@ python3 notion_emotion_twitter.py
 
 ## Datasets
 The datasets that we have used have been obtained from Kaggle:
-* [Emotion tweets](https://www.python.org/downloads/)
+* [Emotion tweets (Training dataset)](https://www.python.org/downloads/)
 * [Tweets about Donald Trump](https://www.kaggle.com/gpreda/trump-tweets)
 * [Tweets about Elon Musk](https://www.kaggle.com/kulgen/elon-musks-tweets)
 * [Tweets about COVID-19](https://www.kaggle.com/gpreda/covid19-tweets)
