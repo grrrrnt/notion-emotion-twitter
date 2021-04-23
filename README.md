@@ -9,7 +9,7 @@ Every second, an average of 6,000 tweets are posted on Twitter, with many indica
 ## Quick Start
 To start our model, the following pre-requisites are needed.
 
-### Pre-requisite
+### Pre-requisites
 * [Python](https://www.python.org/downloads/)
 * [Github](https://github.com/)
 
@@ -30,5 +30,8 @@ Lastly, with the data file in _text_emotion.csv_, run our models with this comma
 python3 notion_emotion_twitter.py
 ```
 
+* To compare the performance between models, uncomment `line 384` of  _notion_emotion_twitter.py_ and comment out `line 385` instead.
 * To modify the model that is being run, refer to `line 234` of _notion_emotion_twitter.py_ and change it accordingly.
 * To select the different features, refer to `line 238` of _notion_emotion_twitter.py_ and change it accordingly.
+* To test the RF model on unseen dataset, uncomment `line 385` of  _notion_emotion_twitter.py_ and comment out `line 384` instead.
+* To change the unseen dataset, refer to `line 355` of _notion_emotion_twitter.py_ and change it accordingly.
