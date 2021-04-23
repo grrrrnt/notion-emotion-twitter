@@ -339,7 +339,7 @@ class TwitterEmotion:
     # 5. Display pie chart of emotion predictions
 
     def test_on_unseen_dataset(self):
-        model_label = 'RF'                                      # to update with best performing params
+        model_label = 'RF'
         model = RandomForestClassifier(n_estimators=100)
         features = ['count', 'embed', 'lexicon', 'caps', 'exclamation', 'character']
         
