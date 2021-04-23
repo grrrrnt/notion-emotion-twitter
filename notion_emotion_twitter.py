@@ -341,7 +341,7 @@ class TwitterEmotion:
     def test_on_unseen_dataset(self):
         model_label = 'RF'                                      # to update with best performing params
         model = RandomForestClassifier(n_estimators=100)
-        features = ['count', 'embed', 'lexicon']
+        features = ['count', 'embed', 'lexicon', 'caps', 'exclamation', 'character']
         
         train_df = pd.read_csv('text_emotion.csv')
         train_df = self.clean(train_df)
@@ -352,7 +352,7 @@ class TwitterEmotion:
         
         # Select topical dataset:
         # covid19_tweets(_sample).csv, vaccination_tweets(_sample).csv, trump_tweets.csv, elonmusk_tweets.csv
-        test_df = pd.read_csv('unseen_datasets/elonmusk_tweets.csv')
+        test_df = pd.read_csv('unseen_datasets/covid19_tweets.csv')
         test_content = test_df['text']
         test = self.preprocess(test_content, np.empty((test_df.shape[0],)))
         test_feature_matrix = self.generate_feature_matrix(model_label, features, test, True)
