@@ -6,6 +6,10 @@ This is a CS4248 Project done by Team 15.
 
 Every second, an average of 6,000 tweets are posted on Twitter, with many indicating some form of emotion. With these tweets, we hope to accurately determine the emotions embedded within them using natural language processing (NLP) techniques and be able to generalise the emotional sentiments attached to different topics. Using this model, we aim to design a tool that generates sentiment reports which could prove to be useful in the work of researchers. With that in mind, we conceptualised and implemented our own preprocessing methods and compared between **Support Vector Machine**, **Multinomial Naive Bayes**, **Random Forest** and **k-Nearest Neighbours** classifiers to build, train and tune our model.
 
+## Project Report
+
+Please refer to our [project report](../blob/main/Group%2015%20-%20Project%20Final%20Report.pdf) for the results of our analysis.
+
 ## Quick Start
 To start our model, the following pre-requisites are needed:
 
