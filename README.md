@@ -8,7 +8,7 @@ Every second, an average of 6,000 tweets are posted on Twitter, with many indica
 
 ## Project Report
 
-Please refer to our [project report](../blob/main/Group%2015%20-%20Project%20Final%20Report.pdf) for the results of our analysis.
+Please refer to our [project report](../main/Group%2015%20-%20Project%20Final%20Report.pdf) for the results of our analysis.
 
 ## Quick Start
 To start our model, the following pre-requisites are needed:
